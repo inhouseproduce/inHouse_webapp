@@ -3,26 +3,27 @@ import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
 
-class TodosList extends Component {
+class StackList extends Component {
   constructor(props) {
     super(props);
     this._isMounted = false;
-    this.state = { sites: [] };
-  }
-
-  edit(id) {
-    this.props.history.push("/edit/" + id);
+    this.state = {
+      stacks: [],
+      sitesystem_id: props.match.params.sitesystemid,
+      site_id: props.match.params.siteid
+    };
   }
 
   delete(id) {
+    console.log(id);
     axios
-      .delete("http://localhost:4000/sites/" + id)
+      .delete("http://localhost:4000/stacks/" + id)
       .then(response => {
-        let sites = this.state.sites;
+        let stacks = this.state.stacks;
         let index = -1;
         let counter = 0;
-        for (let site of sites) {
-          if (site._id === id) {
+        for (let stack of stacks) {
+          if (stack._id === id) {
             index = counter;
             break;
           }
@@ -30,11 +31,10 @@ class TodosList extends Component {
         }
 
         if (index !== -1) {
-          sites.splice(index, 1);
+          stacks.splice(index, 1);
           this._isMounted &&
-            this._isMounted &&
             this.setState({
-              sites: sites
+              stacks: stacks
             });
         }
         //this.props.history.push('/todos');
@@ -47,9 +47,10 @@ class TodosList extends Component {
   componentDidMount() {
     this._isMounted = true;
     axios
-      .get("http://localhost:4000/sites/")
+      .get("http://localhost:4000/stacks/" + this.state.sitesystem_id)
       .then(response => {
-        this._isMounted && this.setState({ sites: response.data });
+        console.log(response.data);
+        this._isMounted && this.setState({ stacks: response.data });
       })
       .catch(function(error) {
         console.log(error);
@@ -61,30 +62,33 @@ class TodosList extends Component {
   }
 
   todoList() {
-    const Sites = props => (
+    const Stacks = props => (
       <tr>
         <td>
-          <Link to={`/${props.sites._id}/sitesystems`} className="nav-link">
-            {props.sites.sites_name}
+          {" "}
+          <Link
+            to={`/${this.state.site_id}/sitesystems/${
+              this.state.sitesystem_id
+            }/stacks/${props.stacks._id}/modules`}
+            className="nav-link"
+          >
+            {props.stacks._id}
           </Link>
         </td>
-        <td>{props.sites.sites_location}</td>
-        <td>{props.sites.sites_createdat}</td>
-        <td>{props.sites.sites_updatedat}</td>
+        <td>{props.stacks.stack_createdat}</td>
         <td>
-          <Button variant="primary" onClick={() => this.edit(props.sites._id)}>
-            Edit
-          </Button>
-          <span> </span>
-          <Button variant="danger" onClick={() => this.delete(props.sites._id)}>
+          <Button
+            variant="danger"
+            onClick={() => this.delete(props.stacks._id)}
+          >
             Delete
           </Button>
         </td>
       </tr>
     );
 
-    return this.state.sites.map(function(currentTodo, i) {
-      return <Sites sites={currentTodo} key={i} />;
+    return this.state.stacks.map(function(currentTodo, i) {
+      return <Stacks stacks={currentTodo} key={i} />;
     });
   }
 
@@ -95,27 +99,35 @@ class TodosList extends Component {
           <div className="collpase navbar-collapse">
             <ul className="navbar-nav mr-auto">
               <li className="navbar-item">
-                <Link to="/" className="nav-link">
-                  Sites
+                <Link
+                  to={`/${this.props.match.params.siteid}/sitesystems/${
+                    this.props.match.params.sitesystemid
+                  }/stacks`}
+                  className="nav-link"
+                >
+                  Stacks
                 </Link>
               </li>
               <li className="navbar-item">
-                <Link to="/create" className="nav-link">
-                  Create Sites
+                <Link
+                  to={`/${this.props.match.params.siteid}/sitesystems/${
+                    this.props.match.params.sitesystemid
+                  }/stacks/create`}
+                  className="nav-link"
+                >
+                  Create Stacks
                 </Link>
               </li>
             </ul>
           </div>
         </nav>
         <br />
-        <h3>Sites List</h3>
+        <h3>Stack List</h3>
         <table className="table table-striped" style={{ marginTop: 20 }}>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Location</th>
+              <th>Id</th>
               <th>Created At</th>
-              <th>Updated At</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -126,4 +138,4 @@ class TodosList extends Component {
   }
 }
 
-export default withRouter(TodosList);
+export default withRouter(StackList);

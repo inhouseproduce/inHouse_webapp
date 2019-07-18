@@ -1,9 +1,11 @@
 import React, { Component } from "react";
 import axios from "axios";
+import { withRouter, Link } from "react-router-dom";
 
-export default class CreateTodo extends Component {
+class CreateTodo extends Component {
   constructor(props) {
     super(props);
+    this._isMounted = false;
 
     this.onChangeTodoName = this.onChangeTodoName.bind(this);
     this.onChangeTodoLocation = this.onChangeTodoLocation.bind(this);
@@ -59,7 +61,24 @@ export default class CreateTodo extends Component {
   render() {
     return (
       <div style={{ marginTop: 10 }}>
-        <h3>Create New Todo</h3>
+        <nav className="navbar navbar-expand-lg navbar-light bg-light">
+          <div className="collpase navbar-collapse">
+            <ul className="navbar-nav mr-auto">
+              <li className="navbar-item">
+                <Link to="/" className="nav-link">
+                  Sites
+                </Link>
+              </li>
+              <li className="navbar-item">
+                <Link to="/create" className="nav-link">
+                  Create Sites
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <br />
+        <h3>Create New Site</h3>
         <form onSubmit={this.onSubmit}>
           <div className="form-group">
             <label>Name: </label>
@@ -92,3 +111,5 @@ export default class CreateTodo extends Component {
     );
   }
 }
+
+export default withRouter(CreateTodo);

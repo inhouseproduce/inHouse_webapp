@@ -3,10 +3,13 @@ const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const todoRoutes = express.Router();
+const sitesRoutes = express.Router();
+const sitesystemsRoutes = express.Router();
+const stackRoutes = express.Router();
+const moduleRoutes = express.Router();
 const PORT = 4000;
 
-let Sites = require("./sites.model");
+let { Sites, Sitesystems, Stacks, Modules } = require("./sites.model");
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -18,7 +21,7 @@ connection.once("open", function() {
   console.log("MongoDB database connection established successfully");
 });
 
-todoRoutes.route("/").get(function(req, res) {
+sitesRoutes.route("/").get(function(req, res) {
   Sites.find(function(err, sites) {
     if (err) {
       console.log(err);
@@ -28,14 +31,14 @@ todoRoutes.route("/").get(function(req, res) {
   });
 });
 
-todoRoutes.route("/:id").get(function(req, res) {
+sitesRoutes.route("/:id").get(function(req, res) {
   let id = req.params.id;
   Sites.findById(id, function(err, sites) {
     res.json(sites);
   });
 });
 
-todoRoutes.route("/update/:id").post(function(req, res) {
+sitesRoutes.route("/update/:id").post(function(req, res) {
   Sites.findById(req.params.id, function(err, sites) {
     if (!sites) res.status(404).send("data is not found");
     else sites.sites_name = req.body.sites_name;
@@ -53,7 +56,7 @@ todoRoutes.route("/update/:id").post(function(req, res) {
   });
 });
 
-todoRoutes.route("/:id").delete(function(req, res) {
+sitesRoutes.route("/:id").delete(function(req, res) {
   let id = req.params.id;
   Sites.findByIdAndDelete(id, function(err) {
     if (!err) {
@@ -66,7 +69,7 @@ todoRoutes.route("/:id").delete(function(req, res) {
   });
 });
 
-todoRoutes.route("/add").post(function(req, res) {
+sitesRoutes.route("/add").post(function(req, res) {
   let sites = new Sites(req.body);
   sites
     .save()
@@ -78,7 +81,224 @@ todoRoutes.route("/add").post(function(req, res) {
     });
 });
 
-app.use("/sites", todoRoutes);
+app.use("/sites", sitesRoutes);
+
+sitesystemsRoutes.route("/").get(function(req, res) {
+  Sitesystems.find(function(err, sites) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(sites);
+    }
+  });
+});
+
+sitesystemsRoutes.route("/systems/:id").get(function(req, res) {
+  let id = req.params.id;
+  Sites.findById(id, function(err, sites) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(sites);
+    }
+  });
+});
+
+sitesystemsRoutes.route("/:id").get(function(req, res) {
+  let id = req.params.id;
+  Sitesystems.find({ sitesystem_siteid: id }, function(err, sites) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(sites);
+    }
+  });
+});
+
+sitesystemsRoutes.route("/add").post(function(req, res) {
+  let sites = new Sitesystems(req.body);
+  sites
+    .save()
+    .then(sites => {
+      res.status(200).json({ sites: "sitesystem added successfully" });
+    })
+    .catch(err => {
+      res.status(400).send("adding new sitesystem failed");
+    });
+});
+
+sitesystemsRoutes.route("/:id").delete(function(req, res) {
+  let id = req.params.id;
+  Sitesystems.findByIdAndDelete(id, function(err) {
+    if (!err) {
+      res.sendStatus(200);
+    } else {
+      res.status(500).json({
+        error: err
+      });
+    }
+  });
+});
+
+sitesystemsRoutes.route("/update/:id").post(function(req, res) {
+  Sitesystems.findById(req.params.id, function(err, sites) {
+    if (!sites) res.status(404).send("data is not found");
+    else sites.sitesystem_updatedat = req.body.sitesystem_updatedat;
+
+    sites
+      .save()
+      .then(sites => {
+        res.json("Sitesystem updated!");
+      })
+      .catch(err => {
+        res.status(400).send("Update not possible");
+      });
+  });
+});
+
+app.use("/sitesystems", sitesystemsRoutes);
+
+stackRoutes.route("/").get(function(req, res) {
+  Stacks.find(function(err, sites) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(sites);
+      res.json(sites);
+    }
+  });
+});
+
+stackRoutes.route("/:id").get(function(req, res) {
+  let id = req.params.id;
+  Stacks.find({ stack_sitesystemid: id }, function(err, sites) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(sites);
+    }
+  });
+});
+
+stackRoutes.route("/add").post(function(req, res) {
+  let sites = new Stacks(req.body);
+  sites
+    .save()
+    .then(sites => {
+      res.status(200).json({ sites: "stack added successfully" });
+    })
+    .catch(err => {
+      res.status(400).send("adding new stack failed");
+    });
+});
+
+stackRoutes.route("/:id").delete(function(req, res) {
+  let id = req.params.id;
+  Stacks.findByIdAndDelete(id, function(err) {
+    if (!err) {
+      res.sendStatus(200);
+    } else {
+      res.status(500).json({
+        error: err
+      });
+    }
+  });
+});
+
+app.use("/stacks", stackRoutes);
+
+moduleRoutes.route("/").get(function(req, res) {
+  Modules.find(function(err, sites) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(sites);
+    }
+  });
+});
+
+moduleRoutes.route("/:id").get(function(req, res) {
+  let id = req.params.id;
+  Modules.find({ module_stackid: id }, function(err, sites) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(sites);
+    }
+  });
+});
+
+moduleRoutes.route("/add").post(function(req, res) {
+  let sites = new Modules(req.body);
+  sites
+    .save()
+    .then(sites => {
+      res.status(200).json({ sites: "module added successfully" });
+    })
+    .catch(err => {
+      res.status(400).send("adding new module failed");
+    });
+});
+
+moduleRoutes.route("/:id").delete(function(req, res) {
+  let id = req.params.id;
+  Modules.findByIdAndDelete(id, function(err) {
+    if (!err) {
+      res.sendStatus(200);
+    } else {
+      res.status(500).json({
+        error: err
+      });
+    }
+  });
+});
+
+moduleRoutes.route("/:id").delete(function(req, res) {
+  let id = req.params.id;
+  Modules.findByIdAndDelete(id, function(err) {
+    if (!err) {
+      res.sendStatus(200);
+    } else {
+      res.status(500).json({
+        error: err
+      });
+    }
+  });
+});
+
+moduleRoutes.route("/systems/:id").get(function(req, res) {
+  console.log("inside edit module");
+  let id = req.params.id;
+  Modules.findById(id, function(err, sites) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(sites);
+    }
+  });
+});
+
+moduleRoutes.route("/update/:id").post(function(req, res) {
+  Modules.findById(req.params.id, function(err, sites) {
+    if (!sites) res.status(404).send("data is not found");
+    else sites.module_cropname = req.body.module_cropname;
+    sites.module_imageurl = req.body.module_imageurl;
+    sites.module_cameranum = req.body.module_cameranum;
+    sites.module_stackid = req.body.module_stackid;
+    sites.module_updatedat = req.body.module_updatedat;
+
+    sites
+      .save()
+      .then(sites => {
+        res.json("Module updated!");
+      })
+      .catch(err => {
+        res.status(400).send("Update not possible");
+      });
+  });
+});
+
+app.use("/modules", moduleRoutes);
 
 app.listen(PORT, function() {
   console.log("Server is running on Port: " + PORT);

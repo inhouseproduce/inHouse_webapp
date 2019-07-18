@@ -1,9 +1,11 @@
 import React, { Component } from "react";
 import axios from "axios";
+import { withRouter, Link } from "react-router-dom";
 
-export default class EditTodo extends Component {
+class EditTodo extends Component {
   constructor(props) {
     super(props);
+    this._isMounted = false;
 
     this.onChangeTodoName = this.onChangeTodoName.bind(this);
     this.onChangeTodoLocation = this.onChangeTodoLocation.bind(this);
@@ -17,17 +19,24 @@ export default class EditTodo extends Component {
   }
 
   componentDidMount() {
+    this._isMounted = true;
+
     axios
       .get("http://localhost:4000/sites/" + this.props.match.params.id)
       .then(response => {
-        this.setState({
-          todo_name: response.data.sites_name,
-          todo_location: response.data.sites_location
-        });
+        this._isMounted &&
+          this.setState({
+            todo_name: response.data.sites_name,
+            todo_location: response.data.sites_location
+          });
       })
       .catch(function(error) {
         console.log(error);
       });
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
   }
 
   onChangeTodoName(e) {
@@ -55,13 +64,31 @@ export default class EditTodo extends Component {
         "http://localhost:4000/sites/update/" + this.props.match.params.id,
         obj
       )
-      .then(res => console.log(res.data));
-
-    this.props.history.push("/");
+      .then(res => {
+        console.log(res.data);
+        this.props.history.push("/");
+      });
   }
   render() {
     return (
       <div>
+        <nav className="navbar navbar-expand-lg navbar-light bg-light">
+          <div className="collpase navbar-collapse">
+            <ul className="navbar-nav mr-auto">
+              <li className="navbar-item">
+                <Link to="/" className="nav-link">
+                  Sites
+                </Link>
+              </li>
+              <li className="navbar-item">
+                <Link to="/create" className="nav-link">
+                  Create Sites
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <br />
         <h3 align="center">Update Sites</h3>
         <form onSubmit={this.onSubmit}>
           <div className="form-group">
@@ -97,3 +124,5 @@ export default class EditTodo extends Component {
     );
   }
 }
+
+export default withRouter(EditTodo);
