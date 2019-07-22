@@ -1,12 +1,18 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+const AWS = require("aws-sdk");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const sitesRoutes = express.Router();
 const sitesystemsRoutes = express.Router();
 const stackRoutes = express.Router();
 const moduleRoutes = express.Router();
+let _ = require("lodash");
+const s3 = new AWS.S3({
+  accessKeyId: "AKIARNKT2KGIPAUBW6ER",
+  secretAccessKey: "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"
+});
 const PORT = 4000;
 
 let { Sites, Sitesystems, Stacks, Modules } = require("./sites.model");
@@ -75,6 +81,20 @@ sitesRoutes.route("/add").post(function(req, res) {
     .save()
     .then(sites => {
       res.status(200).json({ sites: "sites added successfully" });
+      try {
+        s3.putObject(
+          {
+            Bucket: "inhouseproduce-sites",
+            Key: "site_" + sites._id + "/"
+          },
+          function(resp) {
+            console.log(arguments);
+            console.log("Successfully uploaded site.");
+          }
+        );
+      } catch (error) {
+        console.log(error);
+      }
     })
     .catch(err => {
       res.status(400).send("adding new sites failed");
@@ -120,6 +140,28 @@ sitesystemsRoutes.route("/add").post(function(req, res) {
   sites
     .save()
     .then(sites => {
+      try {
+        s3.putObject(
+          {
+            Bucket: "inhouseproduce-sites",
+            Key:
+              "site_" +
+              sites.sitesystem_siteid +
+              "/sitesystem_" +
+              sites._id +
+              "_hardwareid_" +
+              sites.sitesystem_hardwareid +
+              "/"
+          },
+          function(resp) {
+            console.log(arguments);
+            console.log("Successfully uploaded sitesystem.");
+          }
+        );
+      } catch (error) {
+        console.log(errir);
+      }
+
       res.status(200).json({ sites: "sitesystem added successfully" });
     })
     .catch(err => {
@@ -181,15 +223,54 @@ stackRoutes.route("/:id").get(function(req, res) {
 });
 
 stackRoutes.route("/add").post(function(req, res) {
-  let sites = new Stacks(req.body);
-  sites
-    .save()
-    .then(sites => {
-      res.status(200).json({ sites: "stack added successfully" });
-    })
-    .catch(err => {
-      res.status(400).send("adding new stack failed");
-    });
+  let siteid = req.body.stack_siteid;
+  let sitesystemid = req.body.stack_sitesystemid;
+  Sitesystems.find({ _id: sitesystemid }, function(err, sitesystem) {
+    if (err) {
+      console.log(err);
+    } else {
+      let hardwareid = sitesystem[0].sitesystem_hardwareid;
+      let data = _.pick(
+        req.body,
+        "stack_createdat",
+        "stack_sitesystemid",
+        "stack_name"
+      );
+      let sites = new Stacks(data);
+      sites
+        .save()
+        .then(sites => {
+          try {
+            s3.putObject(
+              {
+                Bucket: "inhouseproduce-sites",
+                Key:
+                  "site_" +
+                  siteid +
+                  "/" +
+                  "sitesystem_" +
+                  sitesystemid +
+                  "_hardwareid_" +
+                  hardwareid +
+                  "/" +
+                  sites.stack_name +
+                  "/"
+              },
+              function(resp) {
+                console.log(arguments);
+                console.log("Successfully uploaded stack.");
+              }
+            );
+          } catch (error) {
+            console.log(error);
+          }
+          res.status(200).json({ sites: "stack added successfully" });
+        })
+        .catch(err => {
+          res.status(400).send("adding new stack failed");
+        });
+    }
+  });
 });
 
 stackRoutes.route("/:id").delete(function(req, res) {
@@ -229,15 +310,70 @@ moduleRoutes.route("/:id").get(function(req, res) {
 });
 
 moduleRoutes.route("/add").post(function(req, res) {
-  let sites = new Modules(req.body);
-  sites
-    .save()
-    .then(sites => {
-      res.status(200).json({ sites: "module added successfully" });
-    })
-    .catch(err => {
-      res.status(400).send("adding new module failed");
-    });
+  let siteid = req.body.module_siteid;
+  let sitesystemid = req.body.module_sitesystemid;
+  let stackid = req.body.module_stackid;
+  Sitesystems.find({ _id: sitesystemid }, function(err, sitesystem) {
+    if (err) {
+      console.log(err);
+    } else {
+      let hardwareid = sitesystem[0].sitesystem_hardwareid;
+      Stacks.find({ _id: stackid }, function(err, stack) {
+        if (err) {
+          console.log(err);
+        } else {
+          let stackname = stack[0].stack_name;
+          let data = _.pick(
+            req.body,
+            "module_cropname",
+            "module_imageurl",
+            "module_cameranum",
+            "module_updatedat",
+            "module_createdat",
+            "module_stackid"
+          );
+          let sites = new Modules(data);
+          sites
+            .save()
+            .then(sites => {
+              try {
+                s3.putObject(
+                  {
+                    Bucket: "inhouseproduce-sites",
+                    Key:
+                      "site_" +
+                      siteid +
+                      "/" +
+                      "sitesystem_" +
+                      sitesystemid +
+                      "_hardwareid_" +
+                      hardwareid +
+                      "/" +
+                      stackname +
+                      "/" +
+                      "module_" +
+                      sites._id +
+                      "_camera_" +
+                      sites.module_cameranum +
+                      "/"
+                  },
+                  function(resp) {
+                    console.log(arguments);
+                    console.log("Successfully uploaded site.");
+                  }
+                );
+              } catch (error) {
+                console.log(error);
+              }
+              res.status(200).json({ sites: "module added successfully" });
+            })
+            .catch(err => {
+              res.status(400).send("adding new module failed");
+            });
+        }
+      });
+    }
+  });
 });
 
 moduleRoutes.route("/:id").delete(function(req, res) {

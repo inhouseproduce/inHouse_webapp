@@ -20,6 +20,9 @@ let Stacks = new Schema({
   stack_createdat: {
     type: Date
   },
+  stack_name: {
+    type: String
+  },
   stack_sitesystemid: { type: Schema.Types.ObjectId, ref: "Sitesystems" }
 });
 
@@ -34,6 +37,7 @@ let Sitesystems = new Schema({
   sitesystem_ph: {
     type: String
   },
+  sitesystem_hardwareid: { type: String },
   sitesystem_ec: { type: String },
   sitesystem_temp: { type: String },
   sitesystem_humidity: { type: String },
