@@ -10,27 +10,20 @@ import time
 import datetime
 from picamera import PiCamera
 
-#using the variable 'camera' for ease
 camera = PiCamera()
 
-#setting warnings aside
 gp.setwarnings(False)
 gp.setmode(gp.BOARD)
 
-#need pin 7 for any amount of headers connected to pi. One header supports 4 cameras max
 gp.setup(7, gp.OUT)
-#pin 11 and 12 needed for controlling first ArduCam header
 gp.setup(11, gp.OUT)
 gp.setup(12, gp.OUT)
 
-#needed for second and third header 
-#not necessary for this script
 gp.setup(15, gp.OUT)
 gp.setup(16, gp.OUT)
 gp.setup(21, gp.OUT)
 gp.setup(22, gp.OUT)
 
-#set them all to true
 gp.output(11, True)
 gp.output(12, True)
 gp.output(15, True)
@@ -38,10 +31,111 @@ gp.output(16, True)
 gp.output(21, True)
 gp.output(22, True)
 
-#The main function, defined here, will loop forever
 def main():
+    f = open('/proc/cpuinfo','r')
+    for line in f:
+      if line[0:6]=='Serial':
+        cpuserial = line[10:26]
+    f.close()
+
+    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/" > out.txt' %cpuserial)
+#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module2" > out2.txt' %cpuserial)
+#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module3" > out3.txt' %cpuserial)
+#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module4" > out4.txt' %cpuserial)
+    f = open('/home/pi/out.txt','r')
+    line = f.readlines()
+    char1 = len(line[1])
+    pathway1 = line[1][29:char1]
+    char2 = len(line[2])
+    pathway2 = line[2][29:char2]
+    char3 = len(line[3])
+    pathway3 = line[3][29:char3]
+    char4 = len(line[4])
+    pathway4 = line[4][29:char4]
+    f.close()
+#    f = open('/home/pi/out1.txt','r')
+#    char1 = len(line)
+#    pathway1 = line[29:char1]            
+#    f.close()
+#    
+#    g = open('/home/pi/out2.txt','r')
+#    char2 = len(line)
+#    pathway2 = line[29:char2]            
+#    g.close()
+#    
+#    h = open('/home/pi/out3.txt','r')
+#    char3 = len(line)
+#    pathway3 = line[29:char3]            
+#    h.close()
+#    
+#    i = open('/home/pi/out4.txt','r')
+#    char4 = len(line)
+#    pathway4 = line[29:char4]            
+#    i.close()
+    
+    print(pathway1)
+    print(pathway2)
+    print(pathway3)
+    print(pathway4)
+#
+#    pathway2 = ""
+#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module2" > out2.txt' %cpuserial)
+#
+#    f = open('/home/pi/out2.txt','r')
+#
+#    text = f.read()
+#    characters=0
+#
+#    for i in text:
+#        characters += len(i)
+#
+#    f.close()
+#
+#    f = open('/home/pi/out2.txt','r')
+#    for line in f:
+#        pathway2 = line[29:characters]
+#            
+#    f.close()
+#
+#    pathway3 = ""
+#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module3" > out3.txt' %cpuserial)
+#
+#    f = open('/home/pi/out3.txt','r')
+#
+#    text = f.read()
+#    characters=0
+#
+#    for i in text:
+#        characters += len(i)
+#
+#    f.close()
+#
+#    f = open('/home/pi/out3.txt','r')
+#    for line in f:
+#        pathway3 = line[29:characters]
+#            
+#    f.close()
+#
+#    pathway4 = ""
+#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module4" > out4.txt' %cpuserial)
+#
+#    f = open('/home/pi/out4.txt','r')
+#
+#    text = f.read()
+#    characters=0
+#
+#    for i in text:
+#        characters += len(i)
+#
+#    f.close()
+#
+#    f = open('/home/pi/out4.txt','r')
+#    for line in f:
+#        pathway4 = line[29:characters]
+#            
+#    f.close()
+
     while True:
-        #operating camera A
         gp.output(7, False)
         gp.output(11, False)
         gp.output(12, True)
@@ -49,13 +143,12 @@ def main():
         camera.start_preview()
         time.sleep(3)
         date = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-        camera.capture("/home/pi/cameraA_%s.jpg" %date)
+        camera.capture("/home/pi/camera1_%s.jpg" %date)
         camera.stop_preview()
-        os.system('s3cmd put /home/pi/cameraA_%s.jpg s3://imagesofmicrogreens/camera_A_germination/cameraA_%s.jpg' %(date,date))
-        os.system('rm /home/pi/cameraA_%s.jpg' %date)
+        os.system('s3cmd put camera1_%s.jpg %s' %(date, pathway1))
+        os.system('rm /home/pi/camera1_%s.jpg' %date)
         time.sleep(30)
 
-        #operating camera B
         gp.output(7, True)
         gp.output(11, False)
         gp.output(12, True)
@@ -63,13 +156,12 @@ def main():
         camera.start_preview()
         time.sleep(3)
         date = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-        camera.capture("/home/pi/cameraB_%s.jpg" %date)
-        camera.stop_preview()
-        os.system('s3cmd put /home/pi/cameraB_%s.jpg s3://imagesofmicrogreens/camera_B_firstfloor/cameraB_%s.jpg' %(date,date))
-        os.system('rm /home/pi/cameraB_%s.jpg' %date)
+        camera.capture("/home/pi/camera2_%s.jpg" %date)
+        camera.stop_preview() 
+        os.system('s3cmd put camera2_%s.jpg %s' %(date, pathway2))
+        os.system('rm /home/pi/camera2_%s.jpg' %date)
         time.sleep(30)
 
-        #operating camera C
         gp.output(7, False)
         gp.output(11, True)
         gp.output(12, False)
@@ -77,13 +169,13 @@ def main():
         camera.start_preview()
         time.sleep(3)
         date = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-        camera.capture("/home/pi/cameraC_%s.jpg" %date)
+        camera.capture("/home/pi/camera3_%s.jpg" %date)
         camera.stop_preview()
-        os.system('s3cmd put /home/pi/cameraC_%s.jpg s3://imagesofmicrogreens/camera_C_secondfloor/cameraC_%s.jpg' %(date,date))
-        os.system('rm /home/pi/cameraC_%s.jpg' %date)
+        pathway = ""
+        os.system('s3cmd put camera3_%s.jpg %s' %(date, pathway3))
+        os.system('rm /home/pi/camera3_%s.jpg' %date)
         time.sleep(30)
 
-        #operating camera D
         gp.output(7, True)
         gp.output(11, True)
         gp.output(12, False)
@@ -91,17 +183,13 @@ def main():
         camera.start_preview()
         time.sleep(3)
         date = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-        camera.capture("/home/pi/cameraD_%s.jpg" %date)
+        camera.capture("/home/pi/camera4_%s.jpg" %date)
         camera.stop_preview()
-        os.system('s3cmd put /home/pi/cameraD_%s.jpg s3://imagesofmicrogreens/camera_D_thirdfloor/cameraD_%s.jpg' %(date,date))
-        os.system('rm /home/pi/cameraD_%s.jpg' %date)
+        os.system('s3cmd put camera4_%s.jpg %s' %(date, pathway4))
+        os.system('rm /home/pi/camera4_%s.jpg' %date)
         time.sleep(1800)
 
-#calling main function
 if __name__ == "__main__":
+    
     main()
 
-    #sets to camera A in the end (does not get here because of while True but left it here if we have a finite loop by any chance)
-    gp.output(7, False)
-    gp.output(11, False)
-    gp.output(12, True)
