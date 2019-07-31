@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
+import "../template.css";
 
 class TodosList extends Component {
   constructor(props) {
@@ -10,11 +11,13 @@ class TodosList extends Component {
     this.state = { sites: [] };
   }
 
-  edit(id) {
+  edit(id, e) {
+    e.preventDefault();
     this.props.history.push("/edit/" + id);
   }
 
-  delete(id) {
+  delete(id, e) {
+    e.preventDefault();
     axios
       .delete("http://localhost:4000/sites/" + id)
       .then(response => {
@@ -22,7 +25,7 @@ class TodosList extends Component {
         let index = -1;
         let counter = 0;
         for (let site of sites) {
-          if (site._id === id) {
+          if (site.sites_name === id) {
             index = counter;
             break;
           }
@@ -62,25 +65,30 @@ class TodosList extends Component {
 
   todoList() {
     const Sites = props => (
-      <tr>
-        <td>
-          <Link to={`/${props.sites._id}/sitesystems`} className="nav-link">
+      <div className="col-sm-4">
+        <Link to={`/${props.sites.sites_name}/sitesystems`} className="tile">
+          <h5>
             {props.sites.sites_name}
-          </Link>
-        </td>
-        <td>{props.sites.sites_location}</td>
-        <td>{props.sites.sites_createdat}</td>
-        <td>{props.sites.sites_updatedat}</td>
-        <td>
-          <Button variant="primary" onClick={() => this.edit(props.sites._id)}>
+            <br />
+
+            {props.sites.sites_location}
+          </h5>
+
+          <Button
+            variant="primary"
+            onClick={e => this.edit(props.sites.sites_name, e)}
+          >
             Edit
           </Button>
           <span> </span>
-          <Button variant="danger" onClick={() => this.delete(props.sites._id)}>
+          <Button
+            variant="danger"
+            onClick={e => this.delete(props.sites.sites_name, e)}
+          >
             Delete
           </Button>
-        </td>
-      </tr>
+        </Link>
+      </div>
     );
 
     return this.state.sites.map(function(currentTodo, i) {
@@ -91,36 +99,17 @@ class TodosList extends Component {
   render() {
     return (
       <div>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <div className="collpase navbar-collapse">
-            <ul className="navbar-nav mr-auto">
-              <li className="navbar-item">
-                <Link to="/" className="nav-link">
-                  Sites
-                </Link>
-              </li>
-              <li className="navbar-item">
-                <Link to="/create" className="nav-link">
-                  Create Sites
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
+        <Button
+          className="float-right"
+          onClick={() => this.props.history.push("/create")}
+        >
+          <h4> Create Sites</h4>
+        </Button>
+
         <br />
         <h3>Sites List</h3>
-        <table className="table table-striped" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Location</th>
-              <th>Created At</th>
-              <th>Updated At</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>{this.todoList()}</tbody>
-        </table>
+        <br />
+        <div className="row">{this.todoList()}</div>
       </div>
     );
   }

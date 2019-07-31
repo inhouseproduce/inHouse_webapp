@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
+import "../template.css";
 
 class SitesystemList extends Component {
   constructor(props) {
@@ -10,23 +11,28 @@ class SitesystemList extends Component {
     this.state = { sitesystems: [], site_id: props.match.params.siteid };
   }
 
-  edit(id) {
-    console.log(this.state.site_id + "/sitesystems/edit/" + id);
+  edit(id, e) {
+    e.preventDefault();
     this.props.history.push(
       "/" + this.state.site_id + "/sitesystems/edit/" + id
     );
   }
 
-  delete(id) {
-    console.log(id);
+  delete(id, e) {
+    e.preventDefault();
     axios
-      .delete("http://localhost:4000/sitesystems/" + id)
+      .delete(
+        "http://localhost:4000/sites/" +
+          this.state.site_id +
+          "/sitesystems/" +
+          id
+      )
       .then(response => {
         let sitesystems = this.state.sitesystems;
         let index = -1;
         let counter = 0;
         for (let site of sitesystems) {
-          if (site._id === id) {
+          if (site.sitesystem_hardwareid === id) {
             index = counter;
             break;
           }
@@ -48,10 +54,17 @@ class SitesystemList extends Component {
   }
 
   componentDidMount() {
-    console.log("http://localhost:4000/sitesystems/" + this.state.site_id);
+    console.log(
+      "http://localhost:4000/" + "sites/" + this.state.site_id + "/sitesystems/"
+    );
     this._isMounted = true;
     axios
-      .get("http://localhost:4000/sitesystems/" + this.state.site_id)
+      .get(
+        "http://localhost:4000/" +
+          "sites/" +
+          this.state.site_id +
+          "/sitesystems"
+      )
       .then(response => {
         console.log(response.data);
         this._isMounted && this.setState({ sitesystems: response.data });
@@ -67,36 +80,35 @@ class SitesystemList extends Component {
 
   todoList() {
     const Sitesystems = props => (
-      <tr>
-        <td>
-          <Link
-            to={`/${this.state.site_id}/sitesystems/${
-              props.sitesystems._id
-            }/stacks`}
-            className="nav-link"
-          >
-            {props.sitesystems._id}
-          </Link>
-        </td>
-
-        <td>{props.sitesystems.sitesystem_createdat}</td>
-        <td>{props.sitesystems.sitesystem_updatedat}</td>
-        <td>
+      <div className="col-sm-4">
+        <Link
+          to={`/${this.state.site_id}/sitesystems/${
+            props.sitesystems.sitesystem_name
+          }_${props.sitesystems.sitesystem_hardwareid}/stacks`}
+          className="tile"
+        >
+          <h5>
+            {props.sitesystems.sitesystem_name}
+            <br />
+            {props.sitesystems.sitesystem_hardwareid}
+          </h5>
           <Button
             variant="primary"
-            onClick={() => this.edit(props.sitesystems._id)}
+            onClick={e => this.edit(props.sitesystems.sitesystem_hardwareid, e)}
           >
             Edit
           </Button>
           <span> </span>
           <Button
             variant="danger"
-            onClick={() => this.delete(props.sitesystems._id)}
+            onClick={e =>
+              this.delete(props.sitesystems.sitesystem_hardwareid, e)
+            }
           >
             Delete
           </Button>
-        </td>
-      </tr>
+        </Link>
+      </div>
     );
 
     return this.state.sitesystems.map(function(currentTodo, i) {
@@ -107,41 +119,19 @@ class SitesystemList extends Component {
   render() {
     return (
       <div>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <div className="collpase navbar-collapse">
-            <ul className="navbar-nav mr-auto">
-              <li className="navbar-item">
-                <Link
-                  to={`/${this.props.match.params.siteid}/sitesystems`}
-                  className="nav-link"
-                >
-                  Sitesystem
-                </Link>
-              </li>
-              <li className="navbar-item">
-                <Link
-                  to={`/${this.props.match.params.siteid}/sitesystems/create`}
-                  className="nav-link"
-                >
-                  Create Sitesystem
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
+        <Button
+          className="float-right"
+          onClick={() =>
+            this.props.history.push(
+              "/" + this.state.site_id + "/sitesystems/create"
+            )
+          }
+        >
+          <h4> Create Sitesystem</h4>
+        </Button>
         <br />
         <h3>Sitesystem List</h3>
-        <table className="table table-striped" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Created At</th>
-              <th>Updated At</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>{this.todoList()}</tbody>
-        </table>
+        <div className="row">{this.todoList()}</div>
       </div>
     );
   }

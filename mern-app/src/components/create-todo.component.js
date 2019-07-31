@@ -46,9 +46,10 @@ class CreateTodo extends Component {
       sites_updatedat: this.state.todo_updatedat
     };
 
-    axios
-      .post("http://localhost:4000/sites/add", newSites)
-      .then(res => console.log(res.data));
+    axios.post("http://localhost:4000/sites/add", newSites).then(res => {
+      console.log(res.data);
+      this.props.history.push("/");
+    });
 
     this.setState({
       todo_name: "",
@@ -61,39 +62,25 @@ class CreateTodo extends Component {
   render() {
     return (
       <div style={{ marginTop: 10 }}>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <div className="collpase navbar-collapse">
-            <ul className="navbar-nav mr-auto">
-              <li className="navbar-item">
-                <Link to="/" className="nav-link">
-                  Sites
-                </Link>
-              </li>
-              <li className="navbar-item">
-                <Link to="/create" className="nav-link">
-                  Create Sites
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
-        <br />
         <h3>Create New Site</h3>
+        <br />
         <form onSubmit={this.onSubmit}>
           <div className="form-group">
-            <label>Name: </label>
+            <label className="text-white">Name:</label>
+            <br />
             <input
               type="text"
-              className="form-control"
+              className="form-control input-text"
               value={this.state.todo_name}
               onChange={this.onChangeTodoName}
             />
           </div>
           <div className="form-group">
-            <label>Location: </label>
+            <label className="text-white">Location: </label>
+            <br />
             <input
               type="text"
-              className="form-control"
+              className="form-control input-text"
               value={this.state.todo_location}
               onChange={this.onChangeTodoLocation}
             />

@@ -8,7 +8,6 @@ class EditModule extends Component {
     this._isMounted = false;
 
     this.onChangeTodoCropname = this.onChangeTodoCropname.bind(this);
-    this.onChangeTodoImageurl = this.onChangeTodoImageurl.bind(this);
     this.onChangeTodoCameranum = this.onChangeTodoCameranum.bind(this);
 
     this.onSubmit = this.onSubmit.bind(this);
@@ -28,12 +27,6 @@ class EditModule extends Component {
     });
   }
 
-  onChangeTodoImageurl(e) {
-    this.setState({
-      module_imageurl: e.target.value
-    });
-  }
-
   onChangeTodoCameranum(e) {
     this.setState({
       module_cameranum: e.target.value
@@ -46,7 +39,14 @@ class EditModule extends Component {
 
     axios
       .get(
-        "http://localhost:4000/modules/systems/" + this.props.match.params.id
+        "http://localhost:4000/sites/" +
+          this.props.match.params.siteid +
+          "/sitesystems/" +
+          this.props.match.params.sitesystemid +
+          "/stacks/" +
+          this.props.match.params.stackid +
+          "/modules/" +
+          this.props.match.params.id
       )
       .then(response => {
         this._isMounted &&
@@ -69,15 +69,20 @@ class EditModule extends Component {
     e.preventDefault();
     const obj = {
       module_cropname: this.state.module_cropname,
-      module_imageurl: this.state.module_imageurl,
       module_cameranum: this.state.module_cameranum,
-      module_stackid: this.state.module_stackid,
       module_updatedat: this.state.module_updatedat
     };
     console.log(obj);
     axios
       .post(
-        "http://localhost:4000/modules/update/" + this.props.match.params.id,
+        "http://localhost:4000/sites/" +
+          this.props.match.params.siteid +
+          "/sitesystems/" +
+          this.props.match.params.sitesystemid +
+          "/stacks/" +
+          this.props.match.params.stackid +
+          "/modules/update/" +
+          this.props.match.params.id,
         obj
       )
       .then(res => {
@@ -98,58 +103,22 @@ class EditModule extends Component {
   render() {
     return (
       <div>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <div className="collpase navbar-collapse">
-            <ul className="navbar-nav mr-auto">
-              <li className="navbar-item">
-                <Link
-                  to={`/${this.props.match.params.siteid}/sitesystems/${
-                    this.props.match.params.sitesystemid
-                  }/stacks/${this.props.match.params.stackid}/modules`}
-                  className="nav-link"
-                >
-                  Modules
-                </Link>
-              </li>
-              <li className="navbar-item">
-                <Link
-                  to={`/${this.props.match.params.siteid}/sitesystems/${
-                    this.props.match.params.sitesystemid
-                  }/stacks/${this.props.match.params.stackid}/modules/create`}
-                  className="nav-link"
-                >
-                  Create Modules
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
-        <br />
         <h3 align="center">Update Module</h3>
         <form onSubmit={this.onSubmit}>
           <div className="form-group">
-            <label>Crop Name: </label>
+            <label className="text-white">Crop Name: </label>
             <input
               type="text"
-              className="form-control"
+              className="form-control input-text"
               value={this.state.module_cropname}
               onChange={this.onChangeTodoCropname}
             />
           </div>
           <div className="form-group">
-            <label>Image Url: </label>
+            <label className="text-white">Camera Num: </label>
             <input
               type="text"
-              className="form-control"
-              value={this.state.module_imageurl}
-              onChange={this.onChangeTodoImageurl}
-            />
-          </div>
-          <div className="form-group">
-            <label>Camera Num: </label>
-            <input
-              type="text"
-              className="form-control"
+              className="form-control input-text"
               value={this.state.module_cameranum}
               onChange={this.onChangeTodoCameranum}
             />

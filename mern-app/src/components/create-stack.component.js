@@ -10,7 +10,8 @@ class CreateStack extends Component {
 
     this.state = {
       stack_createdat: new Date(),
-      stack_sitesystemid: this.props.match.params.sitesystemid
+      stack_sitesystemid: this.props.match.params.sitesystemid,
+      stack_siteid: this.props.match.params.siteid
     };
   }
 
@@ -24,46 +25,36 @@ class CreateStack extends Component {
     };
 
     axios
-      .post("http://localhost:4000/stacks/add", newSites)
-      .then(res => console.log(res.data));
-
-    this.setState({
-      stack_createdat: new Date()
-    });
+      .post(
+        "http://localhost:4000//sites/" +
+          this.props.match.params.siteid +
+          "/sitesystems/" +
+          this.props.match.params.sitesystemid +
+          "/stacks/add",
+        newSites
+      )
+      .then(res => {
+        if (res.status === 401) console.log(res.data);
+        this.props.history.push(
+          "/" + this.state.sitesystem_siteid + "/sitesystems"
+        );
+      });
   }
 
   render() {
     return (
       <div style={{ marginTop: 10 }}>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <div className="collpase navbar-collapse">
-            <ul className="navbar-nav mr-auto">
-              <li className="navbar-item">
-                <Link
-                  to={`/${this.props.match.params.siteid}/sitesystems/${
-                    this.props.match.params.sitesystemid
-                  }/stacks`}
-                  className="nav-link"
-                >
-                  Stacks
-                </Link>
-              </li>
-              <li className="navbar-item">
-                <Link
-                  to={`/${this.props.match.params.siteid}/sitesystems/${
-                    this.props.match.params.sitesystemid
-                  }/stacks/create`}
-                  className="nav-link"
-                >
-                  Create Stacks
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
-        <br />
         <h3>Create New Stack</h3>
         <form onSubmit={this.onSubmit}>
+          <div className="form-group">
+            <label>Stack Name: </label>
+            <input
+              type="text"
+              className="form-control"
+              value={this.state.stack_name}
+              onChange={this.onChangeTodoStackname}
+            />
+          </div>
           <div className="form-group">
             <input
               type="submit"

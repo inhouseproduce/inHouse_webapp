@@ -9,6 +9,7 @@ const sitesystemsRoutes = express.Router();
 const stackRoutes = express.Router();
 const moduleRoutes = express.Router();
 let _ = require("lodash");
+
 const s3 = new AWS.S3({
   accessKeyId: "AKIARNKT2KGIPAUBW6ER",
   secretAccessKey: "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"
@@ -27,6 +28,7 @@ connection.once("open", function() {
   console.log("MongoDB database connection established successfully");
 });
 
+// get all sites
 sitesRoutes.route("/").get(function(req, res) {
   Sites.find(function(err, sites) {
     if (err) {
@@ -37,24 +39,129 @@ sitesRoutes.route("/").get(function(req, res) {
   });
 });
 
+// get site by name
 sitesRoutes.route("/:id").get(function(req, res) {
   let id = req.params.id;
-  Sites.findById(id, function(err, sites) {
-    res.json(sites);
+  Sites.find({ sites_name: id }, function(err, sites) {
+    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    else {
+      res.json(sites[0]);
+    }
   });
 });
 
-sitesRoutes.route("/update/:id").post(function(req, res) {
-  Sites.findById(req.params.id, function(err, sites) {
-    if (!sites) res.status(404).send("data is not found");
-    else sites.sites_name = req.body.sites_name;
-    sites.sites_location = req.body.sites_location;
-    sites.sites_updatedat = req.body.sites_updatedat;
+// get sitesystems by site name
+sitesRoutes.route("/:siteid/sitesystems").get(function(req, res) {
+  let id = req.params.siteid;
+  Sitesystems.find({ sitesystem_siteid: id }, function(err, sites) {
+    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    else {
+      res.json(sites);
+    }
+  });
+});
 
+// get sitesystems by hardware id
+sitesRoutes.route("/:siteid/sitesystems/:id").get(function(req, res) {
+  let id = req.params.id;
+  Sitesystems.find({ sitesystem_hardwareid: id }, function(err, sites) {
+    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    else {
+      res.json(sites[0]);
+    }
+  });
+});
+
+// get stacks by sitesystem hardware id
+sitesRoutes
+  .route("/:siteid/sitesystems/:sitesystemid/stacks")
+  .get(function(req, res) {
+    let id = req.params.sitesystemid;
+    Stacks.find({ stack_sitesystemid: id }, function(err, sites) {
+      if (!sites && sites.length == 0)
+        res.status(404).send("data is not found");
+      else {
+        res.json(sites);
+      }
+    });
+  });
+
+// get modules related to stack
+sitesRoutes
+  .route("/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules")
+  .get(function(req, res) {
+    let id = req.params.sitesystemid + "_" + req.params.stackid;
+    console.log(id);
+    Modules.find({ module_stackid: id }, function(err, sites) {
+      if (!sites && sites.length == 0)
+        res.status(404).send("data is not found");
+      else {
+        res.json(sites);
+      }
+    });
+  });
+
+// get modules by module name
+sitesRoutes
+  .route("/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules/:id")
+  .get(function(req, res) {
+    let id = req.params.id;
+    //console.log(id);
+    let mod_stackid = req.params.sitesystemid + "_" + req.params.stackid;
+    //console.log(mod_stackid);
+    Modules.find({ module_name: id, module_stackid: mod_stackid }, function(
+      err,
+      sites
+    ) {
+      // console.log(sites);
+      if (!sites && sites.length == 0)
+        res.status(404).send("data is not found");
+      else {
+        res.json(sites[0]);
+      }
+    });
+  });
+
+//update sites
+sitesRoutes.route("/update/:id").post(function(req, res) {
+  Sites.find({ sites_name: req.params.id }, function(err, sites) {
+    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    else {
+      sites[0].sites_name = req.body.sites_name;
+      sites[0].sites_location = req.body.sites_location;
+      sites[0].sites_updatedat = req.body.sites_updatedat;
+
+      console.log(sites);
+
+      sites[0]
+        .save()
+        .then(sites => {
+          res.json("Sites updated!");
+        })
+        .catch(err => {
+          res.status(400).send("Update not possible");
+        });
+    }
+  });
+});
+
+//update sitesystems
+sitesRoutes.route("/:siteid/sitesystems/update/:id").post(function(req, res) {
+  Sitesystems.find({ sitesystem_hardwareid: req.params.id }, function(
+    err,
     sites
+  ) {
+    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    else {
+      sites[0].sitesystem_updatedat = req.body.sitesystem_updatedat;
+      sites[0].sitesystem_hardwareid = req.body.sitesystem_hardwareid;
+      sites[0].sitesystem_name = req.body.sitesystem_name;
+    }
+
+    sites[0]
       .save()
       .then(sites => {
-        res.json("Sites updated!");
+        res.json("Sitesystem updated!");
       })
       .catch(err => {
         res.status(400).send("Update not possible");
@@ -62,9 +169,56 @@ sitesRoutes.route("/update/:id").post(function(req, res) {
   });
 });
 
+// update modules
+sitesRoutes
+  .route(
+    "/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules/update/:id"
+  )
+  .post(function(req, res) {
+    let mod_stackid = req.params.sitesystemid + "_" + req.params.stackid;
+    Modules.find(
+      { module_name: req.params.id, module_stackid: mod_stackid },
+      function(err, sites) {
+        if (!sites && sites.length == 0)
+          res.status(404).send("data is not found");
+        else {
+          sites[0].module_cropname = req.body.module_cropname;
+          sites[0].module_cameranum = req.body.module_cameranum;
+          sites[0].module_updatedat = req.body.module_updatedat;
+        }
+
+        sites[0]
+          .save()
+          .then(sites => {
+            res.json("Module updated!");
+          })
+          .catch(err => {
+            res.status(400).send("Update not possible");
+          });
+      }
+    );
+  });
+
+//delete sites
 sitesRoutes.route("/:id").delete(function(req, res) {
   let id = req.params.id;
-  Sites.findByIdAndDelete(id, function(err) {
+  Sites.findOneAndDelete({ sites_name: id }, function(err) {
+    if (!err) {
+      console.log("pass");
+      res.sendStatus(200);
+    } else {
+      console.log("pass");
+      res.status(500).json({
+        error: err
+      });
+    }
+  });
+});
+
+//delete sitesystems
+sitesRoutes.route("/:siteid/sitesystems/:id").delete(function(req, res) {
+  let id = req.params.id;
+  Sitesystems.findOneAndDelete({ sitesystem_hardwareid: id }, function(err) {
     if (!err) {
       res.sendStatus(200);
     } else {
@@ -75,6 +229,7 @@ sitesRoutes.route("/:id").delete(function(req, res) {
   });
 });
 
+//add sites
 sitesRoutes.route("/add").post(function(req, res) {
   let sites = new Sites(req.body);
   sites
@@ -85,7 +240,7 @@ sitesRoutes.route("/add").post(function(req, res) {
         s3.putObject(
           {
             Bucket: "inhouseproduce-sites",
-            Key: "site_" + sites._id + "/"
+            Key: sites.sites_name + "/"
           },
           function(resp) {
             console.log(arguments);
@@ -97,45 +252,14 @@ sitesRoutes.route("/add").post(function(req, res) {
       }
     })
     .catch(err => {
-      res.status(400).send("adding new sites failed");
+      if (err.code == 11000) {
+        res.status(401).send("Site with this name already exists");
+      } else res.status(400).send("adding new sites failed");
     });
 });
 
-app.use("/sites", sitesRoutes);
-
-sitesystemsRoutes.route("/").get(function(req, res) {
-  Sitesystems.find(function(err, sites) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(sites);
-    }
-  });
-});
-
-sitesystemsRoutes.route("/systems/:id").get(function(req, res) {
-  let id = req.params.id;
-  Sites.findById(id, function(err, sites) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(sites);
-    }
-  });
-});
-
-sitesystemsRoutes.route("/:id").get(function(req, res) {
-  let id = req.params.id;
-  Sitesystems.find({ sitesystem_siteid: id }, function(err, sites) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(sites);
-    }
-  });
-});
-
-sitesystemsRoutes.route("/add").post(function(req, res) {
+// add sitesystems
+sitesRoutes.route("/:siteid/sitesystems/add").post(function(req, res) {
   let sites = new Sitesystems(req.body);
   sites
     .save()
@@ -145,11 +269,10 @@ sitesystemsRoutes.route("/add").post(function(req, res) {
           {
             Bucket: "inhouseproduce-sites",
             Key:
-              "site_" +
-              sites.sitesystem_siteid +
-              "/sitesystem_" +
-              sites._id +
-              "_hardwareid_" +
+              req.params.siteid +
+              "/" +
+              sites.sitesystem_name +
+              "_" +
               sites.sitesystem_hardwareid +
               "/"
           },
@@ -169,91 +292,40 @@ sitesystemsRoutes.route("/add").post(function(req, res) {
     });
 });
 
-sitesystemsRoutes.route("/:id").delete(function(req, res) {
-  let id = req.params.id;
-  Sitesystems.findByIdAndDelete(id, function(err) {
-    if (!err) {
-      res.sendStatus(200);
-    } else {
-      res.status(500).json({
-        error: err
-      });
-    }
-  });
-});
+// add stacks
+sitesRoutes
+  .route("/:siteid/sitesystems/:sitesystemid/stacks/add")
+  .post(function(req, res) {
+    let stacks = {};
+    stacks.stack_sitesystemid = req.body.stack_sitesystemid;
+    stacks.stack_createdat = req.body.stack_createdat;
 
-sitesystemsRoutes.route("/update/:id").post(function(req, res) {
-  Sitesystems.findById(req.params.id, function(err, sites) {
-    if (!sites) res.status(404).send("data is not found");
-    else sites.sitesystem_updatedat = req.body.sitesystem_updatedat;
-
-    sites
-      .save()
-      .then(sites => {
-        res.json("Sitesystem updated!");
-      })
-      .catch(err => {
-        res.status(400).send("Update not possible");
-      });
-  });
-});
-
-app.use("/sitesystems", sitesystemsRoutes);
-
-stackRoutes.route("/").get(function(req, res) {
-  Stacks.find(function(err, sites) {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(sites);
-      res.json(sites);
-    }
-  });
-});
-
-stackRoutes.route("/:id").get(function(req, res) {
-  let id = req.params.id;
-  Stacks.find({ stack_sitesystemid: id }, function(err, sites) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(sites);
-    }
-  });
-});
-
-stackRoutes.route("/add").post(function(req, res) {
-  let siteid = req.body.stack_siteid;
-  let sitesystemid = req.body.stack_sitesystemid;
-  Sitesystems.find({ _id: sitesystemid }, function(err, sitesystem) {
-    if (err) {
-      console.log(err);
-    } else {
-      let hardwareid = sitesystem[0].sitesystem_hardwareid;
-      let data = _.pick(
-        req.body,
-        "stack_createdat",
-        "stack_sitesystemid",
-        "stack_name"
-      );
-      let sites = new Stacks(data);
+    Stacks.find({ stack_sitesystemid: req.params.sitesystemid }, function(
+      err,
       sites
+    ) {
+      console.log(sites.length);
+      if (!sites || sites.length == 0) stacks.stack_name = "Stack1";
+      else {
+        let len = sites.length + 1;
+        stacks.stack_name = "Stack" + len;
+      }
+
+      let stack = new Stacks(stacks);
+      console.log(stack);
+      stack
         .save()
-        .then(sites => {
+        .then(stack => {
           try {
             s3.putObject(
               {
                 Bucket: "inhouseproduce-sites",
                 Key:
-                  "site_" +
-                  siteid +
+                  req.params.siteid +
                   "/" +
-                  "sitesystem_" +
-                  sitesystemid +
-                  "_hardwareid_" +
-                  hardwareid +
+                  req.params.sitesystemid +
                   "/" +
-                  sites.stack_name +
+                  stacks.stack_name +
                   "/"
               },
               function(resp) {
@@ -269,172 +341,69 @@ stackRoutes.route("/add").post(function(req, res) {
         .catch(err => {
           res.status(400).send("adding new stack failed");
         });
-    }
+    });
   });
-});
 
-stackRoutes.route("/:id").delete(function(req, res) {
-  let id = req.params.id;
-  Stacks.findByIdAndDelete(id, function(err) {
-    if (!err) {
-      res.sendStatus(200);
-    } else {
-      res.status(500).json({
-        error: err
-      });
-    }
-  });
-});
+// add modules
+sitesRoutes
+  .route("/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules/add")
+  .post(function(req, res) {
+    let modules = {};
+    modules.module_cropname = req.body.module_cropname;
+    modules.module_createdat = req.body.module_createdat;
+    modules.module_imageurl = req.body.module_imageurl;
+    modules.module_cameranum = req.body.module_cameranum;
+    modules.module_stackid = req.body.module_stackid;
+    console.log(req.body.module_stackid);
 
-app.use("/stacks", stackRoutes);
+    Modules.find({ module_stackid: req.body.module_stackid }, function(
+      err,
+      mod
+    ) {
+      console.log(mod);
+      if (!mod || mod.length == 0) modules.module_name = "Module1";
+      else {
+        let len = mod.length + 1;
+        modules.module_name = "Module" + len;
+      }
 
-moduleRoutes.route("/").get(function(req, res) {
-  Modules.find(function(err, sites) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(sites);
-    }
-  });
-});
-
-moduleRoutes.route("/:id").get(function(req, res) {
-  let id = req.params.id;
-  Modules.find({ module_stackid: id }, function(err, sites) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(sites);
-    }
-  });
-});
-
-moduleRoutes.route("/add").post(function(req, res) {
-  let siteid = req.body.module_siteid;
-  let sitesystemid = req.body.module_sitesystemid;
-  let stackid = req.body.module_stackid;
-  Sitesystems.find({ _id: sitesystemid }, function(err, sitesystem) {
-    if (err) {
-      console.log(err);
-    } else {
-      let hardwareid = sitesystem[0].sitesystem_hardwareid;
-      Stacks.find({ _id: stackid }, function(err, stack) {
-        if (err) {
-          console.log(err);
-        } else {
-          let stackname = stack[0].stack_name;
-          let data = _.pick(
-            req.body,
-            "module_cropname",
-            "module_imageurl",
-            "module_cameranum",
-            "module_updatedat",
-            "module_createdat",
-            "module_stackid"
-          );
-          let sites = new Modules(data);
-          sites
-            .save()
-            .then(sites => {
-              try {
-                s3.putObject(
-                  {
-                    Bucket: "inhouseproduce-sites",
-                    Key:
-                      "site_" +
-                      siteid +
-                      "/" +
-                      "sitesystem_" +
-                      sitesystemid +
-                      "_hardwareid_" +
-                      hardwareid +
-                      "/" +
-                      stackname +
-                      "/" +
-                      "module_" +
-                      sites._id +
-                      "_camera_" +
-                      sites.module_cameranum +
-                      "/"
-                  },
-                  function(resp) {
-                    console.log(arguments);
-                    console.log("Successfully uploaded site.");
-                  }
-                );
-              } catch (error) {
-                console.log(error);
+      let module = new Modules(modules);
+      console.log(module);
+      module
+        .save()
+        .then(module => {
+          try {
+            s3.putObject(
+              {
+                Bucket: "inhouseproduce-sites",
+                Key:
+                  req.params.siteid +
+                  "/" +
+                  req.params.sitesystemid +
+                  "/" +
+                  req.params.stackid +
+                  "/" +
+                  module.module_name +
+                  "/"
+              },
+              function(resp) {
+                console.log(arguments);
+                console.log("Successfully uploaded module.");
               }
-              res.status(200).json({ sites: "module added successfully" });
-            })
-            .catch(err => {
-              res.status(400).send("adding new module failed");
-            });
-        }
-      });
-    }
+            );
+          } catch (error) {
+            console.log(error);
+          }
+          res.status(200).json({ sites: "module added successfully" });
+        })
+        .catch(err => {
+          console.log(err);
+          res.status(400).send("adding new module failed");
+        });
+    });
   });
-});
 
-moduleRoutes.route("/:id").delete(function(req, res) {
-  let id = req.params.id;
-  Modules.findByIdAndDelete(id, function(err) {
-    if (!err) {
-      res.sendStatus(200);
-    } else {
-      res.status(500).json({
-        error: err
-      });
-    }
-  });
-});
-
-moduleRoutes.route("/:id").delete(function(req, res) {
-  let id = req.params.id;
-  Modules.findByIdAndDelete(id, function(err) {
-    if (!err) {
-      res.sendStatus(200);
-    } else {
-      res.status(500).json({
-        error: err
-      });
-    }
-  });
-});
-
-moduleRoutes.route("/systems/:id").get(function(req, res) {
-  console.log("inside edit module");
-  let id = req.params.id;
-  Modules.findById(id, function(err, sites) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.json(sites);
-    }
-  });
-});
-
-moduleRoutes.route("/update/:id").post(function(req, res) {
-  Modules.findById(req.params.id, function(err, sites) {
-    if (!sites) res.status(404).send("data is not found");
-    else sites.module_cropname = req.body.module_cropname;
-    sites.module_imageurl = req.body.module_imageurl;
-    sites.module_cameranum = req.body.module_cameranum;
-    sites.module_stackid = req.body.module_stackid;
-    sites.module_updatedat = req.body.module_updatedat;
-
-    sites
-      .save()
-      .then(sites => {
-        res.json("Module updated!");
-      })
-      .catch(err => {
-        res.status(400).send("Update not possible");
-      });
-  });
-});
-
-app.use("/modules", moduleRoutes);
+app.use("/sites", sitesRoutes);
 
 app.listen(PORT, function() {
   console.log("Server is running on Port: " + PORT);

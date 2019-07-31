@@ -2,52 +2,69 @@ import React, { Component } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
+import "../template.css";
 
 class StackList extends Component {
   constructor(props) {
     super(props);
     this._isMounted = false;
     this.state = {
+      stack_createdat: new Date(),
       stacks: [],
       sitesystem_id: props.match.params.sitesystemid,
       site_id: props.match.params.siteid
     };
   }
 
-  delete(id) {
-    console.log(id);
-    axios
-      .delete("http://localhost:4000/stacks/" + id)
-      .then(response => {
-        let stacks = this.state.stacks;
-        let index = -1;
-        let counter = 0;
-        for (let stack of stacks) {
-          if (stack._id === id) {
-            index = counter;
-            break;
-          }
-          counter++;
-        }
+  createstack(e) {
+    e.preventDefault();
+    const newSites = {
+      stack_createdat: this.state.stack_createdat,
+      stack_sitesystemid: this.state.sitesystem_id
+    };
 
-        if (index !== -1) {
-          stacks.splice(index, 1);
-          this._isMounted &&
-            this.setState({
-              stacks: stacks
-            });
-        }
-        //this.props.history.push('/todos');
-      })
-      .catch(function(error) {
-        console.log(error);
+    axios
+      .post(
+        "http://localhost:4000/sites/" +
+          this.props.match.params.siteid +
+          "/sitesystems/" +
+          this.props.match.params.sitesystemid +
+          "/stacks/add",
+        newSites
+      )
+      .then(res => {
+        if (res.status === 401) console.log(res.data);
+        console.log(res.data);
+        axios
+          .get(
+            "http://localhost:4000/" +
+              "sites/" +
+              this.state.site_id +
+              "/sitesystems/" +
+              this.state.sitesystem_id +
+              "/stacks"
+          )
+          .then(response => {
+            console.log(response.data);
+            this._isMounted && this.setState({ stacks: response.data });
+          })
+          .catch(function(error) {
+            console.log(error);
+          });
       });
   }
 
   componentDidMount() {
     this._isMounted = true;
     axios
-      .get("http://localhost:4000/stacks/" + this.state.sitesystem_id)
+      .get(
+        "http://localhost:4000/" +
+          "sites/" +
+          this.state.site_id +
+          "/sitesystems/" +
+          this.state.sitesystem_id +
+          "/stacks"
+      )
       .then(response => {
         console.log(response.data);
         this._isMounted && this.setState({ stacks: response.data });
@@ -63,28 +80,16 @@ class StackList extends Component {
 
   todoList() {
     const Stacks = props => (
-      <tr>
-        <td>
-          {" "}
-          <Link
-            to={`/${this.state.site_id}/sitesystems/${
-              this.state.sitesystem_id
-            }/stacks/${props.stacks._id}/modules`}
-            className="nav-link"
-          >
-            {props.stacks._id}
-          </Link>
-        </td>
-        <td>{props.stacks.stack_createdat}</td>
-        <td>
-          <Button
-            variant="danger"
-            onClick={() => this.delete(props.stacks._id)}
-          >
-            Delete
-          </Button>
-        </td>
-      </tr>
+      <div className="col-sm-4">
+        <Link
+          to={`/${this.state.site_id}/sitesystems/${
+            this.state.sitesystem_id
+          }/stacks/${props.stacks.stack_name}/modules`}
+          className="tile"
+        >
+          <h5>{props.stacks.stack_name}</h5>
+        </Link>
+      </div>
     );
 
     return this.state.stacks.map(function(currentTodo, i) {
@@ -95,44 +100,12 @@ class StackList extends Component {
   render() {
     return (
       <div>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <div className="collpase navbar-collapse">
-            <ul className="navbar-nav mr-auto">
-              <li className="navbar-item">
-                <Link
-                  to={`/${this.props.match.params.siteid}/sitesystems/${
-                    this.props.match.params.sitesystemid
-                  }/stacks`}
-                  className="nav-link"
-                >
-                  Stacks
-                </Link>
-              </li>
-              <li className="navbar-item">
-                <Link
-                  to={`/${this.props.match.params.siteid}/sitesystems/${
-                    this.props.match.params.sitesystemid
-                  }/stacks/create`}
-                  className="nav-link"
-                >
-                  Create Stacks
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
+        <Button className="float-right" onClick={e => this.createstack(e)}>
+          <h4>Create Stack</h4>
+        </Button>
         <br />
-        <h3>Stack List</h3>
-        <table className="table table-striped" style={{ marginTop: 20 }}>
-          <thead>
-            <tr>
-              <th>Id</th>
-              <th>Created At</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>{this.todoList()}</tbody>
-        </table>
+        <h3>Stacks List</h3>
+        <div className="row">{this.todoList()}</div>
       </div>
     );
   }

@@ -20,10 +20,12 @@ class EditTodo extends Component {
 
   componentDidMount() {
     this._isMounted = true;
+    console.log(this.props.match.params.id);
 
     axios
       .get("http://localhost:4000/sites/" + this.props.match.params.id)
       .then(response => {
+        // console.log(response.data);
         this._isMounted &&
           this.setState({
             todo_name: response.data.sites_name,
@@ -72,27 +74,11 @@ class EditTodo extends Component {
   render() {
     return (
       <div>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <div className="collpase navbar-collapse">
-            <ul className="navbar-nav mr-auto">
-              <li className="navbar-item">
-                <Link to="/" className="nav-link">
-                  Sites
-                </Link>
-              </li>
-              <li className="navbar-item">
-                <Link to="/create" className="nav-link">
-                  Create Sites
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </nav>
-        <br />
         <h3 align="center">Update Sites</h3>
         <form onSubmit={this.onSubmit}>
           <div className="form-group">
-            <label>Name: </label>
+            <label className="text-white">Name: </label>
+            <br />
             <input
               type="text"
               className="form-control"
@@ -101,7 +87,8 @@ class EditTodo extends Component {
             />
           </div>
           <div className="form-group">
-            <label>Location: </label>
+            <label className="text-white">Location: </label>
+            <br />
             <input
               type="text"
               className="form-control"
