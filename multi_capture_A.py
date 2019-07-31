@@ -15,15 +15,32 @@ camera = PiCamera()
 gp.setwarnings(False)
 gp.setmode(gp.BOARD)
 
+#Pin 7 needed for all 4 stacks
 gp.setup(7, gp.OUT)
+
+#let stack_pins = {
+  #     1: [11, 12],
+ #   ...
+
+#for x in range(modules):
+ #   pins = stack_pins[x+1]
+ #   for pin in pins:
+#        gp.setup(pin, gp.OUT)
+#        gp.setup(pin, True)
+
+
+#Pin 11 and 12 needed for stack 1 only
 gp.setup(11, gp.OUT)
 gp.setup(12, gp.OUT)
 
+#need this for stack 2
 gp.setup(15, gp.OUT)
 gp.setup(16, gp.OUT)
+#need this for stack 3
 gp.setup(21, gp.OUT)
 gp.setup(22, gp.OUT)
 
+#Turning all true
 gp.output(11, True)
 gp.output(12, True)
 gp.output(15, True)
@@ -32,6 +49,7 @@ gp.output(21, True)
 gp.output(22, True)
 
 def main():
+    #grabbing just the serial number
     f = open('/proc/cpuinfo','r')
     for line in f:
       if line[0:6]=='Serial':
@@ -39,9 +57,7 @@ def main():
     f.close()
 
     os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/" > out.txt' %cpuserial)
-#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module2" > out2.txt' %cpuserial)
-#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module3" > out3.txt' %cpuserial)
-#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module4" > out4.txt' %cpuserial)
+
     f = open('/home/pi/out.txt','r')
     line = f.readlines()
     char1 = len(line[1])
@@ -53,88 +69,7 @@ def main():
     char4 = len(line[4])
     pathway4 = line[4][29:char4]
     f.close()
-#    f = open('/home/pi/out1.txt','r')
-#    char1 = len(line)
-#    pathway1 = line[29:char1]            
-#    f.close()
-#    
-#    g = open('/home/pi/out2.txt','r')
-#    char2 = len(line)
-#    pathway2 = line[29:char2]            
-#    g.close()
-#    
-#    h = open('/home/pi/out3.txt','r')
-#    char3 = len(line)
-#    pathway3 = line[29:char3]            
-#    h.close()
-#    
-#    i = open('/home/pi/out4.txt','r')
-#    char4 = len(line)
-#    pathway4 = line[29:char4]            
-#    i.close()
     
-    print(pathway1)
-    print(pathway2)
-    print(pathway3)
-    print(pathway4)
-#
-#    pathway2 = ""
-#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module2" > out2.txt' %cpuserial)
-#
-#    f = open('/home/pi/out2.txt','r')
-#
-#    text = f.read()
-#    characters=0
-#
-#    for i in text:
-#        characters += len(i)
-#
-#    f.close()
-#
-#    f = open('/home/pi/out2.txt','r')
-#    for line in f:
-#        pathway2 = line[29:characters]
-#            
-#    f.close()
-#
-#    pathway3 = ""
-#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module3" > out3.txt' %cpuserial)
-#
-#    f = open('/home/pi/out3.txt','r')
-#
-#    text = f.read()
-#    characters=0
-#
-#    for i in text:
-#        characters += len(i)
-#
-#    f.close()
-#
-#    f = open('/home/pi/out3.txt','r')
-#    for line in f:
-#        pathway3 = line[29:characters]
-#            
-#    f.close()
-#
-#    pathway4 = ""
-#    os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s/Stack1/Module4" > out4.txt' %cpuserial)
-#
-#    f = open('/home/pi/out4.txt','r')
-#
-#    text = f.read()
-#    characters=0
-#
-#    for i in text:
-#        characters += len(i)
-#
-#    f.close()
-#
-#    f = open('/home/pi/out4.txt','r')
-#    for line in f:
-#        pathway4 = line[29:characters]
-#            
-#    f.close()
-
     while True:
         gp.output(7, False)
         gp.output(11, False)
