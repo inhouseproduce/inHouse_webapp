@@ -18,9 +18,10 @@ gp.setmode(gp.BOARD)
 #Pin 7 needed for all 4 stacks
 gp.setup(7, gp.OUT)
 
-#let stack_pins = {
+#let arducam_pins = {
   #     1: [11, 12],
- #   ...
+  #     2: [15, 16],
+  #     3: [21, 22] }
 
 #for x in range(modules):
  #   pins = stack_pins[x+1]
