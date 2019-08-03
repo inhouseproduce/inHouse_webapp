@@ -38,8 +38,8 @@ for line in f:
         cpuserial = line[10:26]
 f.close()
 
-#declaring a global pathway for using in different sections of the code
-pathway = "global"
+#declaring a global pathway to use in the main function and 4 (can even be 16) more pathways to assign the right paths
+pathway = pathway1 = pathway2 = pathway3 = pathway4 = "global"
 
 def main():
     #using the pathway in the define structure by declaring it
@@ -49,66 +49,71 @@ def main():
     if (os.path.exists('/home/pi/out.txt') == False):
         #if there is no output file created, a new one is generated with recursive listings associated with the Pi's serial number
         os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > out.txt' %cpuserial)
-        #Opening and extrapolating data from the newly generated output files
-        f = open('/home/pi/out.txt','r')
-        #reading lines of the file one by one
-        lines = f.readlines()
-        for line in lines:
-            #following lines get the desired listing and strip the unnecessary string from the pathway
-            if (line.find('Module1') >= 0):
-                #29th character onwards gives the correct pathway
-                pathway1 = line[29:]
-            elif (line.find('Module2') >= 0):
-                #29th character onwards gives the correct pathway
-                pathway2 = line[29:]
-            elif (line.find('Module3') >= 0):
-                #29th character onwards gives the correct pathway
-                pathway3 = line[29:]
-            elif (line.find('Module4') >= 0):
-                #29th character onwards gives the correct pathway
-                pathway4 = line[29:]
+        #Opening and extrapolating data from the newly generated output files in one function called get_pathways()
+        get_pathways()
+    else:
+         #if out.txt is already present, the script will not send the command for the recursive listing and get the pathways from the already generated out.txt file
+        get_pathways()
+          
+    while True:
+         #First Camera Operation (Module1)
+         gp.output(7, False); gp.output(11, False); gp.output(12, True)
+         #Camera rotation currently set according to testing cameras. We can choose a definitive rotation for each camera that we can use in the long term.
+         #First Camera Operation (Module1)
+         gp.output(7, False); gp.output(11, False); gp.output(12, True)
+         #main pathway set to pathway1
+         pathway = pathway1
+         #function that implements the whole camera capture
+         camera_process()
 
-    #First Camera Operation (Module1)
-    gp.output(7, False); gp.output(11, False); gp.output(12, True)
-    #Camera rotation currently set according to testing cameras. We can choose a definitive rotation for each camera that we can use in the long term.
-    #First Camera Operation (Module1)
-    gp.output(7, False); gp.output(11, False); gp.output(12, True)
-    #Camera rotation currently set according to testing cameras. We can choose a definitive rotation for each camera that we can use in the long term.
-    camera.rotation = 180
-    #main pathway set to pathway1
-    pathway = pathway1
-    #function that implements the whole camera capture
-    camera_process()
+         #Second Camera Operation (Module2)
+         gp.output(7, True); gp.output(11, False); gp.output(12, True)
+         #main pathway set to pathway2
+         pathway = pathway2
+         #function that implements the whole camera capture
+         camera_process()
 
-    #Second Camera Operation (Module2)
-    gp.output(7, True); gp.output(11, False); gp.output(12, True)
-    #Camera rotation currently set according to testing cameras. We can choose a definitive rotation for each camera that we can use in the long term.
-    camera.rotation = 270
-    #main pathway set to pathway2
-    pathway = pathway2
-    #function that implements the whole camera capture
-    camera_process()
-    
-    #Third Camera Operation (Module3)
-    gp.output(7, False); gp.output(11, True); gp.output(12, False)
-    #Camera rotation currently set according to testing cameras. We can choose a definitive rotation for each camera that we can use in the long term.
-    camera.rotation = 270
-    #main pathway set to pathway3
-    pathway = pathway3
-    #function that implements the whole camera capture
-    camera_process()
+         #Third Camera Operation (Module3)
+         gp.output(7, False); gp.output(11, True); gp.output(12, False)
+         #main pathway set to pathway3
+         pathway = pathway3
+         #function that implements the whole camera capture
+         camera_process()
 
-    #Fourth Camera Operation (Module4)
-    gp.output(7, True); gp.output(11, True); gp.output(12, False)
-    #Camera rotation currently set according to testing cameras. We can choose a definitive rotation for each camera that we can use in the long term.
-    camera.rotation = 270
-    #main pathway set to pathway4
-    pathway = pathway4
-    #function that implements the whole camera capture
-    camera_process()
-    
+         #Fourth Camera Operation (Module4)
+         gp.output(7, True); gp.output(11, True); gp.output(12, False)
+         #main pathway set to pathway4
+         pathway = pathway4
+         #function that implements the whole camera capture
+         camera_process()
+          
+         time.sleep(1800)
+   
+def get_pathways()
+   #using the global pathway variable and assigning them appropriate paths
+   global pathway1, pathway2, pathway3, pathway4
+   f = open('/home/pi/out.txt','r')
+   #reading lines of the file one by one
+   lines = f.readlines()
+   for line in lines:
+       #following lines get the desired listing and strip the unnecessary string from the pathway
+       if (line.find('Module1') >= 0):
+           #29th character onwards gives the correct pathway
+           pathway1 = line[29:]
+       elif (line.find('Module2') >= 0):
+           #29th character onwards gives the correct pathway
+           pathway2 = line[29:]
+       elif (line.find('Module3') >= 0):
+           #29th character onwards gives the correct pathway
+           pathway3 = line[29:]
+       elif (line.find('Module4') >= 0):
+           #29th character onwards gives the correct pathway
+           pathway4 = line[29:]
+
+
 #operation of the user-defined function 'camera_process()'
 def camera_process():
+    camera.rotation = 270
     camera.start_preview()
     #at least 2 seconds of sleep time required for the camera to focus
     time.sleep(3)
@@ -119,6 +124,7 @@ def camera_process():
     #Using OS system commands to first put the image in the desired folder and then deleting the image from the Pi
     os.system('s3cmd put camera_%s.jpg %s' %(date, pathway))
     os.system('rm /home/pi/camera_%s.jpg' %date)
+    time.sleep(60)
 
 #initializing the main function
 if __name__ == "__main__":
