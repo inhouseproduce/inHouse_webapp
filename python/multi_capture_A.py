@@ -112,6 +112,10 @@ def camera_process():
     camera.start_preview()
     #at least 2 seconds of sleep time required for the camera to focus
     time.sleep(3)
+    #new date and time stamp everytime
+    date = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+    camera.capture("/home/pi/camera_%s.jpg" %date)
+    camera.stop_preview()
     #Using OS system commands to first put the image in the desired folder and then deleting the image from the Pi
     os.system('s3cmd put camera_%s.jpg %s' %(date, pathway))
     os.system('rm /home/pi/camera_%s.jpg' %date)
