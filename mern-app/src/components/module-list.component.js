@@ -59,11 +59,10 @@ class ModuleList extends Component {
     const Modules = props => (
       <div className="col-sm-4">
         <div className="tile">
-          <h5>{props.modules.module_imageurl}</h5>
+          <img src={props.modules.module_imageurl} />
           <h5>{props.modules.module_name}</h5>
           <h5>{props.modules.module_cropname}</h5>
           <h5>{props.modules.module_cameranum}</h5>
-
           <Button
             variant="primary"
             onClick={e => this.edit(props.modules.module_name, e)}

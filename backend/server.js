@@ -67,6 +67,7 @@ sitesRoutes.route("/:siteid/sitesystems/:id").get(function(req, res) {
   Sitesystems.find({ sitesystem_hardwareid: id }, function(err, sites) {
     if (!sites && sites.length == 0) res.status(404).send("data is not found");
     else {
+      console.log(sites[0]);
       res.json(sites[0]);
     }
   });
@@ -96,7 +97,51 @@ sitesRoutes
       if (!sites && sites.length == 0)
         res.status(404).send("data is not found");
       else {
-        res.json(sites);
+        const prefix =
+          req.params.siteid +
+          "/" +
+          req.params.sitesystemid +
+          "/" +
+          req.params.stackid;
+        let count = 0;
+        for (site of sites) {
+          try {
+            s3.listObjectsV2(
+              {
+                Bucket: "inhouseproduce-sites",
+                Prefix: prefix + "/" + site.module_name + "/",
+                Delimiter: "/"
+              },
+              function(err, resp) {
+                const module_name = resp.Prefix.split("/").slice(-2, -1)[0];
+                let Site = sites.find(
+                  element => element.module_name === module_name
+                );
+                if (err || (resp.Contents && resp.Contents.length <= 1)) {
+                  Site.module_imageurl = "";
+                } else {
+                  Site.module_imageurl =
+                    "http://localhost:4000/sites/" +
+                    req.params.siteid +
+                    "/sitesystems/" +
+                    req.params.sitesystemid +
+                    "/stacks/" +
+                    req.params.stackid +
+                    "/modules/" +
+                    Site.module_name +
+                    "/images/" +
+                    resp.Contents[1].Key.split("/").pop();
+                }
+                count++;
+                if (count === sites.length) {
+                  res.json(sites);
+                }
+              }
+            );
+          } catch (error) {
+            site.module_imageurl = "";
+          }
+        }
       }
     });
   });
@@ -120,6 +165,42 @@ sitesRoutes
         res.json(sites[0]);
       }
     });
+  });
+
+// get module image by name
+sitesRoutes
+  .route(
+    "/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules/:id/images/:name"
+  )
+  .get(function(req, res) {
+    const key =
+      req.params.siteid +
+      "/" +
+      req.params.sitesystemid +
+      "/" +
+      req.params.stackid +
+      "/" +
+      req.params.id +
+      "/" +
+      req.params.name;
+    try {
+      s3.getObject({ Bucket: "inhouseproduce-sites", Key: key }, function(
+        err,
+        resp
+      ) {
+        if (err) {
+          if (err.statusCode === 404) {
+            return res.status(404).send("Image not Found");
+          }
+          return res.status(400).send("Could not get image");
+        }
+        console.log(resp);
+        res.set("Content-Type", resp.ContentType);
+        res.send(resp.Body);
+      });
+    } catch (error) {
+      console.log(error);
+    }
   });
 
 //update sites
@@ -153,9 +234,17 @@ sitesRoutes.route("/:siteid/sitesystems/update/:id").post(function(req, res) {
   ) {
     if (!sites && sites.length == 0) res.status(404).send("data is not found");
     else {
-      sites[0].sitesystem_updatedat = req.body.sitesystem_updatedat;
+      // sites[0].sitesystem_updatedat = req.body.sitesystem_updatedat;
       sites[0].sitesystem_hardwareid = req.body.sitesystem_hardwareid;
       sites[0].sitesystem_name = req.body.sitesystem_name;
+      sites[0].sitesystem_temp = req.body.sitesystem_temp;
+      sites[0].sitesystem_humidity = req.body.sitesystem_humidity;
+      /* sites[0].sitesystem_timers = req.body.sitesystem_timers.map(function(
+        item
+      ) {
+        delete item.key;
+        return item;
+      });*/
     }
 
     sites[0]
@@ -260,7 +349,7 @@ sitesRoutes.route("/add").post(function(req, res) {
 
 // add sitesystems
 sitesRoutes.route("/:siteid/sitesystems/add").post(function(req, res) {
-  let sites = new Sitesystems(req.body);
+  let sites = new Sitesystems({ ...req.body, sitesystem_timers: [] });
   sites
     .save()
     .then(sites => {
