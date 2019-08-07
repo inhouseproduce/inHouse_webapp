@@ -1,9 +1,12 @@
-#Working code for remote monitoring purposes of products by inHouse Produce. ONLY to be used by inHouse Produce.
-#Test code taken from https://www.arducam.com/multi-camera-adapter-module-raspberry-pi/ and modified to requirements
-
-#The following code uses an ArduCam header to multiplex four cameras at 30 minute intervals and sends the received picture right to the Amazon S3 web server before deleting it on the pi itself
-
-#importing relevant modules
+#######################################################################################################################
+# RaspberryPi Remote Camera Monitoring
+# Test code taken from https://www.arducam.com/multi-camera-adapter-module-raspberry-pi/ and modified to requirements
+# 
+# Written by inHouse Produce. ONLY to be used by inHouse Produce.
+#######################################################################################################################
+# The following code uses an ArduCam header to multiplex four cameras at 30 minute intervals and sends 
+# the received picture right to the Amazon S3 web server before deleting it on the pi itself
+#######################################################################################################################
 import RPi.GPIO as gp
 import os
 import time
@@ -13,21 +16,26 @@ from picamera import PiCamera
 #Using all pathways as global variables
 pathway = pathway1 = pathway2 = pathway3 = pathway4 = "global"
 
-
+######################################################
+# setPins
+# initialize power and data pins for each camera
+######################################################
 def setPins():
     gp.setup(7, gp.OUT) #Pin 7 needed for all cameras
 
-    #Listed pins according to arducam adapter number
-    arducam_pins = {1: [11, 12], 2: [15, 16], 3: [21, 22], 4: [23, 24]}
-
-    #For loop to turn on the relevant pins
+    arducam_pins = { #Listed pins according to arducam adapter number
+        1: [11, 12], 2: [15, 16], 3: [21, 22], 4: [23, 24]
+    }
     for x in range(len(arducam_pins)):
         for pin in arducam_pins[x+1]:
             gp.setup(pin, gp.OUT)
             gp.output(pin, True)
 
 
-#algorithm to extract serial number of the Raspberry Pi
+######################################################
+# getSerial
+# extract serial number of the Raspberry Pi
+######################################################
 def getSerial():
     serialfile = open('/proc/cpuinfo','r')
     for line in serialfile:
@@ -42,7 +50,11 @@ def getSerial():
     return False
 
 
-def get_pathways()
+######################################################
+# getPathways
+# extract pathway name from s3
+######################################################
+def getPathways()
    global pathway1, pathway2, pathway3, pathway4
    f = open('/home/pi/out.txt','r')
    lines = f.readlines()
@@ -58,8 +70,11 @@ def get_pathways()
            pathway4 = line[29:]
 
 
-#operation of the user-defined function 'camera_process()'
-def camera_process(pathway):
+######################################################
+# cameraProcess
+# take a photo for a given camera and push it to s3
+######################################################
+def cameraProcess(pathway):
     camera = PiCamera()
     camera.rotation = 270
     camera.start_preview()
@@ -71,6 +86,11 @@ def camera_process(pathway):
     os.system('rm /home/pi/camera_%s.jpg' %date) #delete image locally
 
 
+######################################################
+# main
+# initialize camera and send pictures from each
+# source to s3 on regular intervals
+######################################################
 def main():
     #set warnings OFF
     gp.setwarnings(False)
@@ -83,38 +103,38 @@ def main():
         if cpu_serial:
             #if there is no output file created, a new one is generated with recursive listings associated with the Pi's serial number
             os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > out.txt' %cpu_serial)
-            #Opening and extrapolating data from the newly generated output files in one function called get_pathways()
-            get_pathways()
+            #Opening and extrapolating data from the newly generated output files in one function called getPathways()
+            getPathways()
         else:
             raise Exception('no cpu_serial found')
     else:
         #if out.txt is already present, the script will not send the command for the recursive listing and get the pathways from the already generated out.txt file
-        get_pathways()
+        getPathways()
 
     while True:
         #First Camera Operation (Module1)
         gp.output(7, False); gp.output(11, False); gp.output(12, True)
         #function that implements the whole camera capture
-        camera_process(pathway1)
+        cameraProcess(pathway1)
         time.sleep(60)
 
         #Second Camera Operation (Module2)
         gp.output(7, True); gp.output(11, False); gp.output(12, True)
         #function that implements the whole camera capture
-        camera_process(pathway2)
+        cameraProcess(pathway2)
         time.sleep(60)
         
 
         #Third Camera Operation (Module3)
         gp.output(7, False); gp.output(11, True); gp.output(12, False)
         #function that implements the whole camera capture
-        camera_process(pathway3)
+        cameraProcess(pathway3)
         time.sleep(60)
 
         #Fourth Camera Operation (Module4)
         gp.output(7, True); gp.output(11, True); gp.output(12, False)
         #function that implements the whole camera capture
-        camera_process(pathway4)
+        cameraProcess(pathway4)
         time.sleep(1800)
 
 
