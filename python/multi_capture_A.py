@@ -56,31 +56,23 @@ def main():
     while True:
          #First Camera Operation (Module1)
          gp.output(7, False); gp.output(11, False); gp.output(12, True)
-         #main pathway set to pathway1
-         pathway = pathway1
          #function that implements the whole camera capture
-         camera_process()
+         camera_process(pathway1)
 
          #Second Camera Operation (Module2)
          gp.output(7, True); gp.output(11, False); gp.output(12, True)
-         #main pathway set to pathway2
-         pathway = pathway2
          #function that implements the whole camera capture
-         camera_process()
+         camera_process(pathway2)
 
          #Third Camera Operation (Module3)
          gp.output(7, False); gp.output(11, True); gp.output(12, False)
-         #main pathway set to pathway3
-         pathway = pathway3
          #function that implements the whole camera capture
-         camera_process()
+         camera_process(pathway3)
 
          #Fourth Camera Operation (Module4)
          gp.output(7, True); gp.output(11, True); gp.output(12, False)
-         #main pathway set to pathway4
-         pathway = pathway4
          #function that implements the whole camera capture
-         camera_process()
+         camera_process(pathway4)
 
          time.sleep(1800)
 
@@ -107,7 +99,7 @@ def get_pathways()
 
 
 #operation of the user-defined function 'camera_process()'
-def camera_process():
+def camera_process(pathway):
     camera.rotation = 270
     camera.start_preview()
     #at least 2 seconds of sleep time required for the camera to focus
