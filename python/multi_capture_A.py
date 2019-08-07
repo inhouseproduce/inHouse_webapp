@@ -5,15 +5,16 @@
 # Written by inHouse Produce. ONLY to be used by inHouse Produce.
 #######################################################################################################################
 # The following code uses an ArduCam header to multiplex four cameras at 30 minute intervals and sends 
-# the received picture right to the Amazon S3 web server before deleting it on the pi itself
+# the received picture right to the Amazon S3 web server before deleting it locally
 #######################################################################################################################
 import RPi.GPIO as gp
 import os
 import time
 import datetime
+import configparser
 from picamera import PiCamera
 
-pathways = {}
+import config_ihp as config_ihp
 
 ######################################################
 # setPins
@@ -29,44 +30,6 @@ def setPins():
         for pin in pins:
             gp.setup(pin, gp.OUT)
             gp.output(pin, True)
-
-
-######################################################
-# getSerial
-# extract serial number of the Raspberry Pi
-######################################################
-def getSerial():
-    serialfile = open('/proc/cpuinfo','r')
-    for line in serialfile:
-        if line[0:6]=='Serial':
-            cpu_serial = line[10:26]
-            serialfile.close()
-
-            return cpu_serial
-
-    serialfile.close()
-
-    return False
-
-
-######################################################
-# getPathways
-# extract pathway name from s3
-######################################################
-def getPathways():
-   global pathways
-   f = open('/home/pi/out.txt','r')
-   lines = f.readlines()
-   for line in lines:
-       #following lines get the desired listing and strip the unnecessary string from the pathway
-       if (line.find('Module1') >= 0):
-           pathways[1] = line[29:] #29th character onwards gives the correct pathway
-       elif (line.find('Module2') >= 0):
-           pathways[2] = line[29:]
-       elif (line.find('Module3') >= 0):
-           pathways[3] = line[29:]
-       elif (line.find('Module4') >= 0):
-           pathways[4] = line[29:]
 
 
 ######################################################
@@ -95,17 +58,14 @@ def main():
     gp.setmode(gp.BOARD)
 
     setPins()
+    config = configparser.ConfigParser()
 
-    if (os.path.exists('/home/pi/out.txt') == False):
-        # if there is no output file created, a new one is generated with recursive listings 
-        # associated with the Pi's serial number
-        os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > /home/pi/out.txt' %cpu_serial)
-    cpu_serial = getSerial()
-    if cpu_serial:   
-        getPathways()
-    else:
-        raise Exception('no cpu_serial found')
-        
+    if not os.path.isfile('/home/pi/ihp_config.ini'):
+        config_ihp.main()
+
+    config.read('/home/pi/ihp_config.ini')
+    pathways = config['pathways']
+
     capture_pins = {
         1: {7: False, 11: False, 12: True},
         2: {7: True, 11: False, 12: True},
@@ -123,3 +83,4 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
