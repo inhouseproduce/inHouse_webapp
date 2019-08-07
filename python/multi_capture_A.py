@@ -53,7 +53,7 @@ def getSerial():
 # getPathways
 # extract pathway name from s3
 ######################################################
-def getPathways()
+def getPathways():
    global pathways
    f = open('/home/pi/out.txt','r')
    lines = f.readlines()
