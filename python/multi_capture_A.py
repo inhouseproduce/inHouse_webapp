@@ -13,8 +13,7 @@ import time
 import datetime
 from picamera import PiCamera
 
-#Using all pathways as global variables
-pathway = pathway1 = pathway2 = pathway3 = pathway4 = "global"
+pathways = {}
 
 ######################################################
 # setPins
@@ -55,19 +54,19 @@ def getSerial():
 # extract pathway name from s3
 ######################################################
 def getPathways()
-   global pathway1, pathway2, pathway3, pathway4
+   global pathways
    f = open('/home/pi/out.txt','r')
    lines = f.readlines()
    for line in lines:
        #following lines get the desired listing and strip the unnecessary string from the pathway
        if (line.find('Module1') >= 0):
-           pathway1 = line[29:] #29th character onwards gives the correct pathway
+           pathways[1] = line[29:] #29th character onwards gives the correct pathway
        elif (line.find('Module2') >= 0):
-           pathway2 = line[29:]
+           pathways[2] = line[29:]
        elif (line.find('Module3') >= 0):
-           pathway3 = line[29:]
+           pathways[3] = line[29:]
        elif (line.find('Module4') >= 0):
-           pathway4 = line[29:]
+           pathways[4] = line[29:]
 
 
 ######################################################
@@ -97,45 +96,32 @@ def main():
     gp.setmode(gp.BOARD)
 
     setPins()
-    #using the pathway in the define structure by declaring it
+    
     if (os.path.exists('/home/pi/out.txt') == False):
+        # if there is no output file created, a new one is generated with recursive listings 
+        # associated with the Pi's serial number
+        os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > /home/pi/out.txt' %cpu_serial)
+    else:
         cpu_serial = getSerial()
-        if cpu_serial:
-            #if there is no output file created, a new one is generated with recursive listings associated with the Pi's serial number
-            os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > out.txt' %cpu_serial)
-            #Opening and extrapolating data from the newly generated output files in one function called getPathways()
+        if cpu_serial:   
             getPathways()
         else:
             raise Exception('no cpu_serial found')
-    else:
-        #if out.txt is already present, the script will not send the command for the recursive listing and get the pathways from the already generated out.txt file
-        getPathways()
+        
+    camera_operation_pins = {
+        1: {7: False, 11: False, 12: True},
+        2: {7: True, 11: False, 12: True},
+        3: {7: False, 11: True, 12: False},
+        4: {7: True, 11: True, 12 False}
+    }
 
     while True:
-        #First Camera Operation (Module1)
-        gp.output(7, False); gp.output(11, False); gp.output(12, True)
-        #function that implements the whole camera capture
-        cameraProcess(pathway1)
-        time.sleep(60)
-
-        #Second Camera Operation (Module2)
-        gp.output(7, True); gp.output(11, False); gp.output(12, True)
-        #function that implements the whole camera capture
-        cameraProcess(pathway2)
-        time.sleep(60)
-        
-
-        #Third Camera Operation (Module3)
-        gp.output(7, False); gp.output(11, True); gp.output(12, False)
-        #function that implements the whole camera capture
-        cameraProcess(pathway3)
-        time.sleep(60)
-
-        #Fourth Camera Operation (Module4)
-        gp.output(7, True); gp.output(11, True); gp.output(12, False)
-        #function that implements the whole camera capture
-        cameraProcess(pathway4)
-        time.sleep(1800)
+        for camera, pins in camera_operation_pins.items():
+            for pin, value in pins.items():
+                gp.output(pin, value)
+            cameraProcess(pathways[camera])
+            time.sleep(60)
+        time.sleep(1740)
 
 
 if __name__ == "__main__":
