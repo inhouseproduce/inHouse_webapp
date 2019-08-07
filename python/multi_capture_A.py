@@ -32,11 +32,16 @@ for x in range(0,len(arducam_pins)):
         gp.output(pin, True)
 
 #algorithm to extract serial number of the Raspberry Pi
-serialfile = open('/proc/cpuinfo','r')
-for line in serialfile:
-    if line[0:6]=='Serial':
-        cpuserial = line[10:26]
-serialfile.close()
+def getSerial():
+    serialfile = open('/proc/cpuinfo','r')
+    for line in serialfile:
+        if line[0:6]=='Serial':
+            cpu_serial = line[10:26]
+            serialfile.close()
+            return cpu_serial
+    serialfile.close()
+    
+    return False
 
 #Using all pathways as global variables
 pathway = pathway1 = pathway2 = pathway3 = pathway4 = "global"
@@ -45,10 +50,14 @@ pathway = pathway1 = pathway2 = pathway3 = pathway4 = "global"
 def main():
     #using the pathway in the define structure by declaring it
     if (os.path.exists('/home/pi/out.txt') == False):
-        #if there is no output file created, a new one is generated with recursive listings associated with the Pi's serial number
-        os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > out.txt' %cpuserial)
-        #Opening and extrapolating data from the newly generated output files in one function called get_pathways()
-        get_pathways()
+        cpu_serial = getSerial()
+        if cpu_serial:
+            #if there is no output file created, a new one is generated with recursive listings associated with the Pi's serial number
+            os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > out.txt' %cpu_serial)
+            #Opening and extrapolating data from the newly generated output files in one function called get_pathways()
+            get_pathways()
+        else:
+            raise Exception('no cpu_serial found')
     else:
         #if out.txt is already present, the script will not send the command for the recursive listing and get the pathways from the already generated out.txt file
         get_pathways()
