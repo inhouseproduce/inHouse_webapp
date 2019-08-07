@@ -22,11 +22,11 @@ pathways = {}
 def setPins():
     gp.setup(7, gp.OUT) #Pin 7 needed for all cameras
 
-    arducam_pins = { #Listed pins according to arducam adapter number
+    setup_pins = { #Listed pins according to arducam adapter number
         1: [11, 12], 2: [15, 16], 3: [21, 22], 4: [23, 24]
     }
-    for x in range(len(arducam_pins)):
-        for pin in arducam_pins[x+1]:
+    for camera, pins in setup_pins.items():
+        for pin in pins:
             gp.setup(pin, gp.OUT)
             gp.output(pin, True)
 
@@ -91,12 +91,11 @@ def cameraProcess(pathway):
 # source to s3 on regular intervals
 ######################################################
 def main():
-    #set warnings OFF
-    gp.setwarnings(False)
+    gp.setwarnings(False) #set warnings OFF
     gp.setmode(gp.BOARD)
 
     setPins()
-    
+
     if (os.path.exists('/home/pi/out.txt') == False):
         # if there is no output file created, a new one is generated with recursive listings 
         # associated with the Pi's serial number
@@ -108,7 +107,7 @@ def main():
         else:
             raise Exception('no cpu_serial found')
         
-    camera_operation_pins = {
+    capture_pins = {
         1: {7: False, 11: False, 12: True},
         2: {7: True, 11: False, 12: True},
         3: {7: False, 11: True, 12: False},
@@ -116,7 +115,7 @@ def main():
     }
 
     while True:
-        for camera, pins in camera_operation_pins.items():
+        for camera, pins in capture_pins.items():
             for pin, value in pins.items():
                 gp.output(pin, value)
             cameraProcess(pathways[camera])
