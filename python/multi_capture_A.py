@@ -81,7 +81,7 @@ def cameraProcess(pathway):
     date = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
     camera.capture("/home/pi/camera_%s.jpg" %date)
     camera.stop_preview()
-    os.system('s3cmd put camera_%s.jpg %s' %(date, pathway)) #push image to s3
+    os.system('s3cmd put /home/pi/camera_%s.jpg %s' %(date, pathway)) #push image to s3
     os.system('rm /home/pi/camera_%s.jpg' %date) #delete image locally
 
 
@@ -100,12 +100,11 @@ def main():
         # if there is no output file created, a new one is generated with recursive listings 
         # associated with the Pi's serial number
         os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > /home/pi/out.txt' %cpu_serial)
+    cpu_serial = getSerial()
+    if cpu_serial:   
+        getPathways()
     else:
-        cpu_serial = getSerial()
-        if cpu_serial:   
-            getPathways()
-        else:
-            raise Exception('no cpu_serial found')
+        raise Exception('no cpu_serial found')
         
     capture_pins = {
         1: {7: False, 11: False, 12: True},
