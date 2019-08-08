@@ -38,7 +38,7 @@ def getSerial(config):
         if line[0:6]=='Serial':
             cpu_serial = line[10:26]
             serialfile.close()
-            config['cpu_serial'] = cpu_serial
+            config['cpu_serial'] = {'cpu_serial': cpu_serial}
 
             return cpu_serial
 
