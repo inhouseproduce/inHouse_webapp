@@ -22,7 +22,7 @@ class SitesystemList extends Component {
     e.preventDefault();
     axios
       .delete(
-        "http://localhost:4000/sites/" +
+        "/sites/" +
           this.state.site_id +
           "/sitesystems/" +
           id
@@ -55,12 +55,12 @@ class SitesystemList extends Component {
 
   componentDidMount() {
     console.log(
-      "http://localhost:4000/" + "sites/" + this.state.site_id + "/sitesystems/"
+      "/" + "sites/" + this.state.site_id + "/sitesystems/"
     );
     this._isMounted = true;
     axios
       .get(
-        "http://localhost:4000/" +
+        "/" +
           "sites/" +
           this.state.site_id +
           "/sitesystems"

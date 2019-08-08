@@ -4,24 +4,24 @@ const bodyParser = require("body-parser");
 const AWS = require("aws-sdk");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const path = require("path");
 const sitesRoutes = express.Router();
-const sitesystemsRoutes = express.Router();
-const stackRoutes = express.Router();
-const moduleRoutes = express.Router();
 let _ = require("lodash");
 
 const s3 = new AWS.S3({
   accessKeyId: "AKIARNKT2KGIPAUBW6ER",
   secretAccessKey: "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"
 });
-const PORT = 4000;
+const PORT = process.env.PORT || 8080;
 
 let { Sites, Sitesystems, Stacks, Modules } = require("./sites.model");
 
 app.use(cors());
 app.use(bodyParser.json());
 
-mongoose.connect("mongodb://127.0.0.1:27017/sites", { useNewUrlParser: true });
+mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/sites", {
+  useNewUrlParser: true
+});
 const connection = mongoose.connection;
 
 connection.once("open", function() {
@@ -128,7 +128,7 @@ sitesRoutes
                       : current;
                   });
                   Site.module_imageurl =
-                    "http://localhost:4000/sites/" +
+                    "/sites/" +
                     req.params.siteid +
                     "/sitesystems/" +
                     req.params.sitesystemid +
@@ -496,6 +496,13 @@ sitesRoutes
   });
 
 app.use("/sites", sitesRoutes);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("client/build"));
+  app.get("*", function(req, res) {
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+  });
+}
 
 app.listen(PORT, function() {
   console.log("Server is running on Port: " + PORT);

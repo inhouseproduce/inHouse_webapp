@@ -34,7 +34,7 @@ class ModuleList extends Component {
     this._isMounted = true;
     axios
       .get(
-        "http://localhost:4000/sites/" +
+        "/sites/" +
           this.state.site_id +
           "/sitesystems/" +
           this.state.sitesystem_id +

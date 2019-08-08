@@ -27,7 +27,7 @@ class StackList extends Component {
 
     axios
       .post(
-        "http://localhost:4000/sites/" +
+        "/sites/" +
           this.props.match.params.siteid +
           "/sitesystems/" +
           this.props.match.params.sitesystemid +
@@ -39,7 +39,7 @@ class StackList extends Component {
         console.log(res.data);
         axios
           .get(
-            "http://localhost:4000/" +
+            "/" +
               "sites/" +
               this.state.site_id +
               "/sitesystems/" +
@@ -60,7 +60,7 @@ class StackList extends Component {
     this._isMounted = true;
     axios
       .get(
-        "http://localhost:4000/" +
+        "/" +
           "sites/" +
           this.state.site_id +
           "/sitesystems/" +
@@ -76,7 +76,7 @@ class StackList extends Component {
       });
     axios
       .get(
-        "http://localhost:4000/sites/" +
+        "/sites/" +
           this.state.site_id +
           "/sitesystems/" +
           this.state.sitesystem_id.split("_").pop()
