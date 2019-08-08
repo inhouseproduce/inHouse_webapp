@@ -76,7 +76,7 @@ def main():
         for camera, pins in capture_pins.items():
             for pin, value in pins.items():
                 gp.output(pin, value)
-            cameraProcess(pathways[camera])
+            cameraProcess(pathways[str(camera)])
             time.sleep(60)
         time.sleep(1740)
 
