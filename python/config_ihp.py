@@ -16,17 +16,19 @@ import os
 def getPathways(config):
    pathways = {}
    f = open('/home/pi/inHouseProduce/out.txt','r')
+   config['pathways'] = {}
+   pathways = config['pathways']
    lines = f.readlines()
    for line in lines:
        #following lines get the desired listing and strip the unnecessary string from the pathway
        if (line.find('Module1') >= 0):
-           config['pathways']['1'] = line[29:] #29th character onwards gives the correct pathway
+           pathways['1'] = line[29:] #29th character onwards gives the correct pathway
        elif (line.find('Module2') >= 0):
-           config['pathways']['2'] = line[29:]
+           pathways['2'] = line[29:]
        elif (line.find('Module3') >= 0):
-           config['pathways']['3'] = line[29:]
+           pathways['3'] = line[29:]
        elif (line.find('Module4') >= 0):
-           config['pathways']['4'] = line[29:]
+           pathways['4'] = line[29:]
 
 
 ######################################################
