@@ -240,22 +240,19 @@ sitesRoutes.route("/:siteid/sitesystems/update/:id").post(function(req, res) {
   ) {
     if (!sites && sites.length == 0) res.status(404).send("data is not found");
     else {
-      // sites[0].sitesystem_updatedat = req.body.sitesystem_updatedat;
+      //console.log(req.body.sitesystem_timers);
+      sites[0].sitesystem_updatedat = req.body.sitesystem_updatedat;
       sites[0].sitesystem_hardwareid = req.body.sitesystem_hardwareid;
       sites[0].sitesystem_name = req.body.sitesystem_name;
       sites[0].sitesystem_temp = req.body.sitesystem_temp;
       sites[0].sitesystem_humidity = req.body.sitesystem_humidity;
-      /* sites[0].sitesystem_timers = req.body.sitesystem_timers.map(function(
-        item
-      ) {
-        delete item.key;
-        return item;
-      });*/
+      sites[0].sitesystem_timers = req.body.sitesystem_timers;
     }
 
     sites[0]
       .save()
       .then(sites => {
+        console.log(sites);
         res.json("Sitesystem updated!");
       })
       .catch(err => {

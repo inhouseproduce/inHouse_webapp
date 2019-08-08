@@ -12,7 +12,9 @@ class StackList extends Component {
       stack_createdat: new Date(),
       stacks: [],
       sitesystem_id: props.match.params.sitesystemid,
-      site_id: props.match.params.siteid
+      site_id: props.match.params.siteid,
+      sitesystem_timers: [],
+      sitesystem_timers_key: 0
     };
   }
 
@@ -72,6 +74,28 @@ class StackList extends Component {
       .catch(function(error) {
         console.log(error);
       });
+    axios
+      .get(
+        "http://localhost:4000/sites/" +
+          this.state.site_id +
+          "/sitesystems/" +
+          this.state.sitesystem_id.split("_").pop()
+      )
+      .then(response => {
+        this._isMounted &&
+          this.setState({
+            sitesystem_timers: response.data.sitesystem_timers.map(
+              (element, index) => {
+                element.key = index;
+                return element;
+              }
+            ),
+            sitesystem_timers_key: response.data.sitesystem_timers.length
+          });
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
   }
 
   componentWillUnmount() {
@@ -97,12 +121,70 @@ class StackList extends Component {
     });
   }
 
+  timersList(characteristic) {
+    return this.state.sitesystem_timers
+      .filter(element => element.characteristic === characteristic)
+      .map((sitesystem_timer, i) => (
+        <tr key={sitesystem_timer.key}>
+          <td>{sitesystem_timer.start_time}</td>
+          <td>{sitesystem_timer.duration}</td>
+          <td>{sitesystem_timer.status}</td>
+        </tr>
+      ));
+  }
+
   render() {
     return (
       <div>
         <Button className="float-right" onClick={e => this.createstack(e)}>
           <h4>Create Stack</h4>
         </Button>
+        <br />
+        <h3>Scheduling Data</h3>
+        <div className="row">
+          <div className="card custom-card col-sm-4">
+            <div className="card-header text-blue">Ozone</div>
+
+            <table className="card-table table">
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Duration(s)</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>{this.timersList("Ozone")}</tbody>
+            </table>
+          </div>
+          <div className="card custom-card col-sm-4">
+            <div className="card-header text-blue">Pump</div>
+
+            <table className="card-table table">
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Duration(s)</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>{this.timersList("Pump")}</tbody>
+            </table>
+          </div>
+          <div className="card custom-card col-sm-4">
+            <div className="card-header text-blue">Lights</div>
+
+            <table className="card-table table">
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Duration(s)</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>{this.timersList("Lights")}</tbody>
+            </table>
+          </div>
+        </div>
         <br />
         <h3>Stacks List</h3>
         <div className="row">{this.todoList()}</div>

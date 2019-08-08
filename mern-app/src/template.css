@@ -26,9 +26,8 @@ h5 {
 }
 
 .tile img {
-  width: 150px;
-  height: 150px;
-  float: right;
+  width: 50px;
+  height: 50px;
 }
 
 .tile:hover {
@@ -52,4 +51,24 @@ h5 {
 
 .background-white {
   background-color: #fff;
+}
+
+.custom-card {
+  width: 24rem;
+  background-clip: content-box !important;
+  border: none !important;
+}
+
+.text-blue {
+  color: #007bff;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.text-blue button {
+  float: right;
+}
+
+.table {
+  text-align: center;
 }
