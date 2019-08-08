@@ -22,7 +22,6 @@ import config_ihp as config_ihp
 ######################################################
 def setPins():
     gp.setup(7, gp.OUT) #Pin 7 needed for all cameras
-
     setup_pins = { #Listed pins according to arducam adapter number
         1: [11, 12], 2: [15, 16], 3: [21, 22], 4: [23, 24]
     }
@@ -42,10 +41,10 @@ def cameraProcess(pathway):
     camera.start_preview()
     time.sleep(3) # >2 seconds of sleep time required for the camera to focus
     date = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-    camera.capture("/home/pi/camera_%s.jpg" %date)
+    camera.capture("/home/pi/inHouseProduce/camera_%s.jpg" %date)
     camera.stop_preview()
-    os.system('s3cmd put /home/pi/camera_%s.jpg %s' %(date, pathway)) #push image to s3
-    os.system('rm /home/pi/camera_%s.jpg' %date) #delete image locally
+    os.system('s3cmd put /home/pi/inHouseProduce/camera_%s.jpg %s' %(date, pathway)) #push image to s3
+    os.system('rm /home/pi/inHouseProduce/camera_%s.jpg' %date) #delete image locally
 
 
 ######################################################
@@ -60,17 +59,17 @@ def main():
     setPins()
     config = configparser.ConfigParser()
 
-    if not os.path.isfile('/home/pi/ihp_config.ini'):
+    if not os.path.isfile('/home/pi/inHouseProduce/ihp_config.ini'):
         config_ihp.main()
 
-    config.read('/home/pi/ihp_config.ini')
+    config.read('/home/pi/inHouseProduce/ihp_config.ini')
     pathways = config['pathways']
 
     capture_pins = {
         1: {7: False, 11: False, 12: True},
         2: {7: True, 11: False, 12: True},
         3: {7: False, 11: True, 12: False},
-        4: {7: True, 11: True, 12 False}
+        4: {7: True, 11: True, 12: False}
     }
 
     while True:

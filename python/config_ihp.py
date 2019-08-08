@@ -14,7 +14,7 @@ import configparser
 ######################################################
 def getPathways(config):
    pathways = {}
-   f = open('/home/pi/out.txt','r')
+   f = open('/home/pi/inHouseProduce/out.txt','r')
    lines = f.readlines()
    for line in lines:
        #following lines get the desired listing and strip the unnecessary string from the pathway
@@ -57,14 +57,14 @@ def main():
 
     cpu_serial = getSerial(config)
 
-    if (os.path.exists('/home/pi/out.txt') == False):
+    if (os.path.exists('/home/pi/inHouseProduce/out.txt') == False):
         # if there is no output file created, a new one is generated with recursive listings 
         # associated with the Pi's serial number
-        os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > /home/pi/out.txt' %cpu_serial)
+        os.system('s3cmd ls -r s3://inhouseproduce-sites | grep "%s" > /home/pi/inHouseProduce/out.txt' %cpu_serial)
     
     getPathways(config)
 
-    with open('/home/pi/ihp_config.ini', 'w') as configfile:
+    with open('/home/pi/inHouseProduce/ihp_config.ini', 'w') as configfile:
         config.write(configfile)
 
 
