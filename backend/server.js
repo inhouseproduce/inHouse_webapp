@@ -120,6 +120,13 @@ sitesRoutes
                 if (err || (resp.Contents && resp.Contents.length <= 1)) {
                   Site.module_imageurl = "";
                 } else {
+                  const latest = resp.Contents.filter(
+                    element => element.Size !== 0
+                  ).reduce(function(prev, current) {
+                    return prev.LastModified > current.LastModified
+                      ? prev
+                      : current;
+                  });
                   Site.module_imageurl =
                     "http://localhost:4000/sites/" +
                     req.params.siteid +
@@ -130,7 +137,7 @@ sitesRoutes
                     "/modules/" +
                     Site.module_name +
                     "/images/" +
-                    resp.Contents[1].Key.split("/").pop();
+                    latest.Key.split("/").pop();
                 }
                 count++;
                 if (count === sites.length) {
@@ -194,7 +201,6 @@ sitesRoutes
           }
           return res.status(400).send("Could not get image");
         }
-        console.log(resp);
         res.set("Content-Type", resp.ContentType);
         res.send(resp.Body);
       });

@@ -59,7 +59,11 @@ class ModuleList extends Component {
     const Modules = props => (
       <div className="col-sm-4">
         <div className="tile">
-          <img src={props.modules.module_imageurl} />
+          {props.modules.module_imageurl === "" ? (
+            <></>
+          ) : (
+            <img src={props.modules.module_imageurl} />
+          )}
           <h5>{props.modules.module_name}</h5>
           <h5>{props.modules.module_cropname}</h5>
           <h5>{props.modules.module_cameranum}</h5>

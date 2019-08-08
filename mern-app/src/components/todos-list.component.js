@@ -52,6 +52,7 @@ class TodosList extends Component {
     axios
       .get("http://localhost:4000/sites/")
       .then(response => {
+        console.log(response.data);
         this._isMounted && this.setState({ sites: response.data });
       })
       .catch(function(error) {
