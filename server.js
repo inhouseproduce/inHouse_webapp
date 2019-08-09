@@ -8,11 +8,9 @@ const path = require("path");
 const sitesRoutes = express.Router();
 let _ = require("lodash");
 
-const s3 = new AWS.S3({
-  accessKeyId: "AKIARNKT2KGIPAUBW6ER",
-  secretAccessKey: "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"
-});
+const s3 = new AWS.S3();
 const PORT = process.env.PORT || 8080;
+const S3Bucket = process.env.S3_BUCKET_NAME;
 
 let { Sites, Sitesystems, Stacks, Modules } = require("./sites.model");
 
@@ -108,7 +106,7 @@ sitesRoutes
           try {
             s3.listObjectsV2(
               {
-                Bucket: "inhouseproduce-sites",
+                Bucket: S3Bucket,
                 Prefix: prefix + "/" + site.module_name + "/",
                 Delimiter: "/"
               },
@@ -191,10 +189,7 @@ sitesRoutes
       "/" +
       req.params.name;
     try {
-      s3.getObject({ Bucket: "inhouseproduce-sites", Key: key }, function(
-        err,
-        resp
-      ) {
+      s3.getObject({ Bucket: S3Bucket, Key: key }, function(err, resp) {
         if (err) {
           if (err.statusCode === 404) {
             return res.status(404).send("Image not Found");
@@ -331,7 +326,7 @@ sitesRoutes.route("/add").post(function(req, res) {
       try {
         s3.putObject(
           {
-            Bucket: "inhouseproduce-sites",
+            Bucket: S3Bucket,
             Key: sites.sites_name + "/"
           },
           function(resp) {
@@ -359,7 +354,7 @@ sitesRoutes.route("/:siteid/sitesystems/add").post(function(req, res) {
       try {
         s3.putObject(
           {
-            Bucket: "inhouseproduce-sites",
+            Bucket: S3Bucket,
             Key:
               req.params.siteid +
               "/" +
@@ -411,7 +406,7 @@ sitesRoutes
           try {
             s3.putObject(
               {
-                Bucket: "inhouseproduce-sites",
+                Bucket: S3Bucket,
                 Key:
                   req.params.siteid +
                   "/" +
@@ -467,7 +462,7 @@ sitesRoutes
           try {
             s3.putObject(
               {
-                Bucket: "inhouseproduce-sites",
+                Bucket: S3Bucket,
                 Key:
                   req.params.siteid +
                   "/" +
