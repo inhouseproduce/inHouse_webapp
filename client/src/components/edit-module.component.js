@@ -39,7 +39,7 @@ class EditModule extends Component {
 
     axios
       .get(
-        "http://localhost:4000/sites/" +
+        "/sites/" +
           this.props.match.params.siteid +
           "/sitesystems/" +
           this.props.match.params.sitesystemid +
@@ -75,7 +75,7 @@ class EditModule extends Component {
     console.log(obj);
     axios
       .post(
-        "http://localhost:4000/sites/" +
+        "/sites/" +
           this.props.match.params.siteid +
           "/sitesystems/" +
           this.props.match.params.sitesystemid +

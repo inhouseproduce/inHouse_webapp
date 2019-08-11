@@ -49,9 +49,7 @@ class CreateSitesystem extends Component {
 
     axios
       .post(
-        "http://localhost:4000/sites/" +
-          this.props.match.params.siteid +
-          "/sitesystems/add",
+        "/sites/" + this.props.match.params.siteid + "/sitesystems/add",
         newSites
       )
       .then(res => {

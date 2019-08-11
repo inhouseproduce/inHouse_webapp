@@ -23,7 +23,7 @@ class EditTodo extends Component {
     console.log(this.props.match.params.id);
 
     axios
-      .get("http://localhost:4000/sites/" + this.props.match.params.id)
+      .get("/sites/" + this.props.match.params.id)
       .then(response => {
         // console.log(response.data);
         this._isMounted &&
@@ -63,7 +63,7 @@ class EditTodo extends Component {
     console.log(obj);
     axios
       .post(
-        "http://localhost:4000/sites/update/" + this.props.match.params.id,
+        "/sites/update/" + this.props.match.params.id,
         obj
       )
       .then(res => {

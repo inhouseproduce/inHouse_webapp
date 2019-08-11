@@ -26,7 +26,7 @@ class CreateStack extends Component {
 
     axios
       .post(
-        "http://localhost:4000//sites/" +
+        "/sites/" +
           this.props.match.params.siteid +
           "/sitesystems/" +
           this.props.match.params.sitesystemid +

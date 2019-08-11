@@ -19,7 +19,7 @@ class TodosList extends Component {
   delete(id, e) {
     e.preventDefault();
     axios
-      .delete("http://localhost:4000/sites/" + id)
+      .delete("/sites/" + id)
       .then(response => {
         let sites = this.state.sites;
         let index = -1;
@@ -50,8 +50,9 @@ class TodosList extends Component {
   componentDidMount() {
     this._isMounted = true;
     axios
-      .get("http://localhost:4000/sites/")
+      .get("/sites/")
       .then(response => {
+        console.log(response.data);
         this._isMounted && this.setState({ sites: response.data });
       })
       .catch(function(error) {

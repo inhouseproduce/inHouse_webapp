@@ -46,7 +46,7 @@ class CreateTodo extends Component {
       sites_updatedat: this.state.todo_updatedat
     };
 
-    axios.post("http://localhost:4000/sites/add", newSites).then(res => {
+    axios.post("/sites/add", newSites).then(res => {
       console.log(res.data);
       this.props.history.push("/");
     });

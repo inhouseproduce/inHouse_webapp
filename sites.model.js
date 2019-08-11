@@ -27,6 +27,13 @@ let Stacks = new Schema({
   }
 });
 
+let Sitesystems_timer = new Schema({
+  start_time: { type: String },
+  duration: { type: Number },
+  status: { type: String },
+  characteristic: { type: String }
+});
+
 let Sitesystems = new Schema({
   sitesystem_siteid: { type: Schema.Types.String, ref: "Sites.sites_name" },
   sitesystem_createdat: {
@@ -44,7 +51,8 @@ let Sitesystems = new Schema({
   sitesystem_temp: { type: String },
   sitesystem_humidity: { type: String },
   sitesystem_dissolved_oxygen: { type: String },
-  sitesystem_co2: { type: String }
+  sitesystem_co2: { type: String },
+  sitesystem_timers: { type: [Sitesystems_timer] }
 });
 
 let Modules = new Schema({

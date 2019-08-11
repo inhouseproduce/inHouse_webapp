@@ -4,24 +4,22 @@ const bodyParser = require("body-parser");
 const AWS = require("aws-sdk");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const path = require("path");
 const sitesRoutes = express.Router();
-const sitesystemsRoutes = express.Router();
-const stackRoutes = express.Router();
-const moduleRoutes = express.Router();
 let _ = require("lodash");
 
-const s3 = new AWS.S3({
-  accessKeyId: "AKIARNKT2KGIPAUBW6ER",
-  secretAccessKey: "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"
-});
-const PORT = 4000;
+const s3 = new AWS.S3();
+const PORT = process.env.PORT || 8080;
+const S3Bucket = process.env.S3_BUCKET_NAME;
 
 let { Sites, Sitesystems, Stacks, Modules } = require("./sites.model");
 
 app.use(cors());
 app.use(bodyParser.json());
 
-mongoose.connect("mongodb://127.0.0.1:27017/sites", { useNewUrlParser: true });
+mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/sites", {
+  useNewUrlParser: true
+});
 const connection = mongoose.connection;
 
 connection.once("open", function() {
@@ -67,6 +65,7 @@ sitesRoutes.route("/:siteid/sitesystems/:id").get(function(req, res) {
   Sitesystems.find({ sitesystem_hardwareid: id }, function(err, sites) {
     if (!sites && sites.length == 0) res.status(404).send("data is not found");
     else {
+      console.log(sites[0]);
       res.json(sites[0]);
     }
   });
@@ -96,7 +95,58 @@ sitesRoutes
       if (!sites && sites.length == 0)
         res.status(404).send("data is not found");
       else {
-        res.json(sites);
+        const prefix =
+          req.params.siteid +
+          "/" +
+          req.params.sitesystemid +
+          "/" +
+          req.params.stackid;
+        let count = 0;
+        for (site of sites) {
+          try {
+            s3.listObjectsV2(
+              {
+                Bucket: S3Bucket,
+                Prefix: prefix + "/" + site.module_name + "/",
+                Delimiter: "/"
+              },
+              function(err, resp) {
+                const module_name = resp.Prefix.split("/").slice(-2, -1)[0];
+                let Site = sites.find(
+                  element => element.module_name === module_name
+                );
+                if (err || (resp.Contents && resp.Contents.length <= 1)) {
+                  Site.module_imageurl = "";
+                } else {
+                  const latest = resp.Contents.filter(
+                    element => element.Size !== 0
+                  ).reduce(function(prev, current) {
+                    return prev.LastModified > current.LastModified
+                      ? prev
+                      : current;
+                  });
+                  Site.module_imageurl =
+                    "/sites/" +
+                    req.params.siteid +
+                    "/sitesystems/" +
+                    req.params.sitesystemid +
+                    "/stacks/" +
+                    req.params.stackid +
+                    "/modules/" +
+                    Site.module_name +
+                    "/images/" +
+                    latest.Key.split("/").pop();
+                }
+                count++;
+                if (count === sites.length) {
+                  res.json(sites);
+                }
+              }
+            );
+          } catch (error) {
+            site.module_imageurl = "";
+          }
+        }
       }
     });
   });
@@ -120,6 +170,38 @@ sitesRoutes
         res.json(sites[0]);
       }
     });
+  });
+
+// get module image by name
+sitesRoutes
+  .route(
+    "/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules/:id/images/:name"
+  )
+  .get(function(req, res) {
+    const key =
+      req.params.siteid +
+      "/" +
+      req.params.sitesystemid +
+      "/" +
+      req.params.stackid +
+      "/" +
+      req.params.id +
+      "/" +
+      req.params.name;
+    try {
+      s3.getObject({ Bucket: S3Bucket, Key: key }, function(err, resp) {
+        if (err) {
+          if (err.statusCode === 404) {
+            return res.status(404).send("Image not Found");
+          }
+          return res.status(400).send("Could not get image");
+        }
+        res.set("Content-Type", resp.ContentType);
+        res.send(resp.Body);
+      });
+    } catch (error) {
+      console.log(error);
+    }
   });
 
 //update sites
@@ -153,14 +235,19 @@ sitesRoutes.route("/:siteid/sitesystems/update/:id").post(function(req, res) {
   ) {
     if (!sites && sites.length == 0) res.status(404).send("data is not found");
     else {
+      //console.log(req.body.sitesystem_timers);
       sites[0].sitesystem_updatedat = req.body.sitesystem_updatedat;
       sites[0].sitesystem_hardwareid = req.body.sitesystem_hardwareid;
       sites[0].sitesystem_name = req.body.sitesystem_name;
+      sites[0].sitesystem_temp = req.body.sitesystem_temp;
+      sites[0].sitesystem_humidity = req.body.sitesystem_humidity;
+      sites[0].sitesystem_timers = req.body.sitesystem_timers;
     }
 
     sites[0]
       .save()
       .then(sites => {
+        console.log(sites);
         res.json("Sitesystem updated!");
       })
       .catch(err => {
@@ -239,7 +326,7 @@ sitesRoutes.route("/add").post(function(req, res) {
       try {
         s3.putObject(
           {
-            Bucket: "inhouseproduce-sites",
+            Bucket: S3Bucket,
             Key: sites.sites_name + "/"
           },
           function(resp) {
@@ -260,14 +347,14 @@ sitesRoutes.route("/add").post(function(req, res) {
 
 // add sitesystems
 sitesRoutes.route("/:siteid/sitesystems/add").post(function(req, res) {
-  let sites = new Sitesystems(req.body);
+  let sites = new Sitesystems({ ...req.body, sitesystem_timers: [] });
   sites
     .save()
     .then(sites => {
       try {
         s3.putObject(
           {
-            Bucket: "inhouseproduce-sites",
+            Bucket: S3Bucket,
             Key:
               req.params.siteid +
               "/" +
@@ -319,7 +406,7 @@ sitesRoutes
           try {
             s3.putObject(
               {
-                Bucket: "inhouseproduce-sites",
+                Bucket: S3Bucket,
                 Key:
                   req.params.siteid +
                   "/" +
@@ -375,7 +462,7 @@ sitesRoutes
           try {
             s3.putObject(
               {
-                Bucket: "inhouseproduce-sites",
+                Bucket: S3Bucket,
                 Key:
                   req.params.siteid +
                   "/" +
@@ -404,6 +491,13 @@ sitesRoutes
   });
 
 app.use("/sites", sitesRoutes);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("client/build"));
+  app.get("*", function(req, res) {
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+  });
+}
 
 app.listen(PORT, function() {
   console.log("Server is running on Port: " + PORT);
