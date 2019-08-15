@@ -62,7 +62,9 @@ class ModuleList extends Component {
           {props.modules.module_imageurl === "" ? (
             <></>
           ) : (
-            <img src={props.modules.module_imageurl} />
+            <a href={props.modules.module_imageurl} target="_blank">
+              <img src={props.modules.module_imageurl} />
+            </a>
           )}
           <h5>{props.modules.module_name}</h5>
           <h5>{props.modules.module_cropname}</h5>
