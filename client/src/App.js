@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Route } from "react-router-dom";
-import CreateTodo from "./components/create-todo.component";
-import EditTodo from "./components/edit-todo.component";
-import TodosList from "./components/todos-list.component";
+import SiteCreate from "./components/site-create";
+import SiteEdit from "./components/site-edit";
+import SitesList from "./components/sites-list";
 import SitesystemList from "./components/sitesystem-list.component";
 import CreateSitesystem from "./components/create-sitesystem.component";
 import EditSitesystem from "./components/edit-sitesystem.component";
@@ -17,9 +17,9 @@ function App() {
   return (
     <Router>
       <div className="container">
-        <Route path="/" exact component={TodosList} />
-        <Route path="/edit/:id" exact component={EditTodo} />
-        <Route path="/create" component={CreateTodo} />
+        <Route path="/" exact component={SitesList} />
+        <Route path="/edit/:id" exact component={SiteEdit} />
+        <Route path="/create" component={SiteCreate} />
         <Route path="/:siteid/sitesystems" exact component={SitesystemList} />
         <Route
           path="/:siteid/sitesystems/create"
