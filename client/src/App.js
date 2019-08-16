@@ -6,8 +6,7 @@ import SitesList from "./components/sites-list";
 import SitesystemsList from "./components/sitesystems-list";
 import SitesystemCreate from "./components/sitesystem-create";
 import SitesystemEdit from "./components/sitesystem-edit";
-import StackList from "./components/stack-list.component";
-import CreateStack from "./components/create-stack.component";
+import StacksList from "./components/stacks-list";
 import ModuleList from "./components/module-list.component";
 import CreateModule from "./components/create-module.component";
 import EditModule from "./components/edit-module.component";
@@ -33,12 +32,7 @@ function App() {
         <Route
           path="/:siteid/sitesystems/:sitesystemid/stacks"
           exact
-          component={StackList}
-        />
-        <Route
-          path="/:siteid/sitesystems/:sitesystemid/stacks/create"
-          exact
-          component={CreateStack}
+          component={StacksList}
         />
         <Route
           path="/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules"
