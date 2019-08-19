@@ -7,9 +7,9 @@ import SitesystemsList from "./components/sitesystems-list";
 import SitesystemCreate from "./components/sitesystem-create";
 import SitesystemEdit from "./components/sitesystem-edit";
 import StacksList from "./components/stacks-list";
-import ModuleList from "./components/module-list.component";
-import CreateModule from "./components/create-module.component";
-import EditModule from "./components/edit-module.component";
+import ModulesList from "./components/modules-list";
+import ModuleCreate from "./components/module-create";
+import ModuleEdit from "./components/module-edit";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
@@ -37,16 +37,16 @@ function App() {
         <Route
           path="/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules"
           exact
-          component={ModuleList}
+          component={ModulesList}
         />
         <Route
           path="/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules/create"
           exact
-          component={CreateModule}
+          component={ModuleCreate}
         />
         <Route
           path="/:siteid/sitesystems/:sitesystemid/stacks/:stackid/modules/edit/:id"
-          component={EditModule}
+          component={ModuleEdit}
         />
       </div>
     </Router>

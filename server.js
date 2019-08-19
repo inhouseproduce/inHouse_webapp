@@ -41,7 +41,7 @@ sitesRoutes.route("/").get(function(req, res) {
 sitesRoutes.route("/:id").get(function(req, res) {
   let id = req.params.id;
   Sites.find({ sites_name: id }, function(err, sites) {
-    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    if (!sites || sites.length === 0) res.status(404).send("data is not found");
     else {
       res.json(sites[0]);
     }
@@ -52,7 +52,7 @@ sitesRoutes.route("/:id").get(function(req, res) {
 sitesRoutes.route("/:siteid/sitesystems").get(function(req, res) {
   let id = req.params.siteid;
   Sitesystems.find({ sitesystem_siteid: id }, function(err, sites) {
-    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    if (!sites || sites.length === 0) res.status(404).send("data is not found");
     else {
       res.json(sites);
     }
@@ -63,7 +63,7 @@ sitesRoutes.route("/:siteid/sitesystems").get(function(req, res) {
 sitesRoutes.route("/:siteid/sitesystems/:id").get(function(req, res) {
   let id = req.params.id;
   Sitesystems.find({ sitesystem_hardwareid: id }, function(err, sites) {
-    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    if (!sites || sites.length === 0) res.status(404).send("data is not found");
     else {
       console.log(sites[0]);
       res.json(sites[0]);
@@ -77,7 +77,7 @@ sitesRoutes
   .get(function(req, res) {
     let id = req.params.sitesystemid;
     Stacks.find({ stack_sitesystemid: id }, function(err, sites) {
-      if (!sites && sites.length == 0)
+      if (!sites || sites.length === 0)
         res.status(404).send("data is not found");
       else {
         res.json(sites);
@@ -92,7 +92,7 @@ sitesRoutes
     let id = req.params.sitesystemid + "_" + req.params.stackid;
     console.log(id);
     Modules.find({ module_stackid: id }, function(err, sites) {
-      if (!sites && sites.length == 0)
+      if (!sites || sites.length === 0)
         res.status(404).send("data is not found");
       else {
         const prefix =
@@ -164,7 +164,7 @@ sitesRoutes
       sites
     ) {
       // console.log(sites);
-      if (!sites && sites.length == 0)
+      if (!sites || sites.length === 0)
         res.status(404).send("data is not found");
       else {
         res.json(sites[0]);
@@ -207,7 +207,7 @@ sitesRoutes
 //update sites
 sitesRoutes.route("/update/:id").post(function(req, res) {
   Sites.find({ sites_name: req.params.id }, function(err, sites) {
-    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    if (!sites || sites.length === 0) res.status(404).send("data is not found");
     else {
       sites[0].sites_name = req.body.sites_name;
       sites[0].sites_location = req.body.sites_location;
@@ -233,7 +233,7 @@ sitesRoutes.route("/:siteid/sitesystems/update/:id").post(function(req, res) {
     err,
     sites
   ) {
-    if (!sites && sites.length == 0) res.status(404).send("data is not found");
+    if (!sites || sites.length === 0) res.status(404).send("data is not found");
     else {
       //console.log(req.body.sitesystem_timers);
       sites[0].sitesystem_updatedat = req.body.sitesystem_updatedat;
@@ -266,7 +266,7 @@ sitesRoutes
     Modules.find(
       { module_name: req.params.id, module_stackid: mod_stackid },
       function(err, sites) {
-        if (!sites && sites.length == 0)
+        if (!sites || sites.length === 0)
           res.status(404).send("data is not found");
         else {
           sites[0].module_cropname = req.body.module_cropname;
