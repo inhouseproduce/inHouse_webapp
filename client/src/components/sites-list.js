@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
@@ -6,25 +6,31 @@ import "../template.css";
 
 // this displays the list of sites present
 const SitesList = props => {
-  const _isMounted = useRef(true);
+  let requestSiteDeleteCancelSources = [];
   const { history } = props;
 
   const [sites, setSites] = useState([]);
 
   useEffect(() => {
-    const requestSitesList = async () => {
+    const requestSitesList = async axiosCancelSource => {
       try {
-        const response = await axios.get("/sites/");
-        if (_isMounted.current) {
-          console.log(response.data);
-          setSites(response.data);
-        }
+        const response = await axios.get("/sites/", {
+          cancelToken: axiosCancelSource.token
+        });
+        console.log(response.data);
+        setSites(response.data);
       } catch (error) {
         console.log(error);
       }
     };
-    requestSitesList();
-    return () => (_isMounted.current = false);
+    const requestSitesListCancelSource = axios.CancelToken.source();
+    requestSitesList(requestSitesListCancelSource);
+    return () => {
+      requestSitesListCancelSource.cancel();
+      requestSiteDeleteCancelSources.map(requestSiteDeleteCancelSource =>
+        requestSiteDeleteCancelSource.cancel()
+      );
+    };
   }, []);
 
   const handleEdit = (id, event) => {
@@ -34,18 +40,28 @@ const SitesList = props => {
 
   const handleDelete = (id, event) => {
     event.preventDefault();
-    const requestSiteDelete = async () => {
+    const requestSiteDelete = async axiosCancelSource => {
       try {
-        await axios.delete(`/sites/${id}`);
-        const index = sites.findIndex(site => site.sites_name === id);
-        if (index !== -1 && _isMounted) {
-          setSites(sites.filter((site, i) => i !== index));
-        }
+        await axios.delete(`/sites/${id}`, {
+          cancelToken: axiosCancelSource.token
+        });
+        requestSiteDeleteCancelSources.splice(
+          requestSiteDeleteCancelSources.indexOf(axiosCancelSource),
+          1
+        );
+        setSites(
+          sites.filter(
+            (site, index) =>
+              index !== sites.findIndex(site => site.sites_name === id)
+          )
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    requestSiteDelete();
+    const requestSiteDeleteCancelSource = axios.CancelToken.source();
+    requestSiteDeleteCancelSources.push(requestSiteDeleteCancelSource);
+    requestSiteDelete(requestSiteDeleteCancelSource);
   };
 
   const renderSitesList = () => {

@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
 // this is to edit the sites present
 const SiteEdit = props => {
-  const _isMounted = useRef(true);
   const { history } = props;
   const siteid = props.match.params.id;
 
@@ -14,19 +13,20 @@ const SiteEdit = props => {
   });
 
   useEffect(() => {
-    const requestSite = async () => {
+    const requestSite = async axiosCancelSource => {
       try {
-        const response = await axios.get(`/sites/${siteid}`);
-        if (_isMounted.current) {
-          console.log(response.data);
-          setSite(response.data);
-        }
+        const response = await axios.get(`/sites/${siteid}`, {
+          cancelToken: axiosCancelSource.token
+        });
+        console.log(response.data);
+        setSite(response.data);
       } catch (error) {
         console.log(error);
       }
     };
-    requestSite();
-    return () => (_isMounted.current = false);
+    const requestSiteCancelSource = axios.CancelToken.source();
+    requestSite(requestSiteCancelSource);
+    return () => requestSiteCancelSource.cancel();
   }, []);
 
   const handleSubmit = event => {

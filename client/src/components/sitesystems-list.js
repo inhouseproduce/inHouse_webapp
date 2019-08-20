@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
@@ -7,26 +7,33 @@ import "../template.css";
 // this displays the list of sitesystem present
 
 const SitesystemsList = props => {
-  const _isMounted = useRef(true);
+  let requestSitesystemDeleteCancelSources = [];
   const { history } = props;
   const siteid = props.match.params.siteid;
 
   const [sitesystems, setSitesystems] = useState([]);
 
   useEffect(() => {
-    const requestSitesystemsList = async () => {
+    const requestSitesystemsList = async axiosCancelSource => {
       try {
-        const response = await axios.get(`/sites/${siteid}/sitesystems`);
-        if (_isMounted.current) {
-          console.log(response.data);
-          setSitesystems(response.data);
-        }
+        const response = await axios.get(`/sites/${siteid}/sitesystems`, {
+          cancelToken: axiosCancelSource.token
+        });
+        console.log(response.data);
+        setSitesystems(response.data);
       } catch (error) {
         console.log(error);
       }
     };
-    requestSitesystemsList();
-    return () => (_isMounted.current = false);
+    const requestSitesystemsListCancelSource = axios.CancelToken.source();
+    requestSitesystemsList(requestSitesystemsListCancelSource);
+    return () => {
+      requestSitesystemsListCancelSource.cancel();
+      requestSitesystemDeleteCancelSources.map(
+        requestSitesystemDeleteCancelSource =>
+          requestSitesystemDeleteCancelSource.cancel()
+      );
+    };
   }, []);
 
   const handleEdit = (id, event) => {
@@ -36,20 +43,33 @@ const SitesystemsList = props => {
 
   const handleDelete = (id, event) => {
     event.preventDefault();
-    const requestSitesystemDelete = async () => {
+    const requestSitesystemDelete = async axiosCancelSource => {
       try {
-        await axios.delete(`/sites/${siteid}/sitesystems/${id}`);
-        const index = sitesystems.findIndex(
-          sitesystem => sitesystem.sitesystem_hardwareid === id
+        await axios.delete(`/sites/${siteid}/sitesystems/${id}`, {
+          cancelToken: axiosCancelSource.token
+        });
+        requestSitesystemDeleteCancelSources.splice(
+          requestSitesystemDeleteCancelSources.indexOf(axiosCancelSource),
+          1
         );
-        if (index !== -1 && _isMounted) {
-          setSitesystems(sitesystems.filter((sitesystem, i) => i !== index));
-        }
+        setSitesystems(
+          sitesystems.filter(
+            (sitesystem, index) =>
+              index !==
+              sitesystems.findIndex(
+                sitesystem => sitesystem.sitesystem_hardwareid === id
+              )
+          )
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    requestSitesystemDelete();
+    const requestSitesystemDeleteCancelSource = axios.CancelToken.source();
+    requestSitesystemDeleteCancelSources.push(
+      requestSitesystemDeleteCancelSource
+    );
+    requestSitesystemDelete(requestSitesystemDeleteCancelSource);
   };
 
   const renderSitesystemsList = () => {

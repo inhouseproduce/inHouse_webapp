@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter } from "react-router-dom";
@@ -7,7 +7,6 @@ import "../template.css";
 // to get list of modules present
 
 const ModulesList = props => {
-  const _isMounted = useRef(true);
   const { history } = props;
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.sitesystemid;
@@ -16,21 +15,23 @@ const ModulesList = props => {
   const [modules, setModules] = useState([]);
 
   useEffect(() => {
-    const requestModulesList = async () => {
+    const requestModulesList = async axiosCancelSource => {
       try {
         const response = await axios.get(
-          `/sites/${siteid}/sitesystems/${sitesystemid}/stacks/${stackid}/modules`
+          `/sites/${siteid}/sitesystems/${sitesystemid}/stacks/${stackid}/modules`,
+          {
+            cancelToken: axiosCancelSource.token
+          }
         );
-        if (_isMounted.current) {
-          console.log(response.data);
-          setModules(response.data);
-        }
+        console.log(response.data);
+        setModules(response.data);
       } catch (error) {
         console.log(error);
       }
     };
-    requestModulesList();
-    return () => (_isMounted.current = false);
+    const requestModulesListCancelSource = axios.CancelToken.source();
+    requestModulesList(requestModulesListCancelSource);
+    return () => requestModulesListCancelSource.cancel();
   }, []);
 
   const handleEdit = (id, event) => {

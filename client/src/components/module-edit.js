@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
 // this is called when Edit Module Button is clicked
 
 const ModuleEdit = props => {
-  const _isMounted = useRef(true);
   const { history } = props;
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.sitesystemid;
@@ -18,21 +17,23 @@ const ModuleEdit = props => {
   });
 
   useEffect(() => {
-    const requestModule = async () => {
+    const requestModule = async axiosCancelSource => {
       try {
         const response = await axios.get(
-          `/sites/${siteid}/sitesystems/${sitesystemid}/stacks/${stackid}/modules/${moduleid}`
+          `/sites/${siteid}/sitesystems/${sitesystemid}/stacks/${stackid}/modules/${moduleid}`,
+          {
+            cancelToken: axiosCancelSource.token
+          }
         );
-        if (_isMounted.current) {
-          console.log(response.data);
-          setModule(response.data);
-        }
+        console.log(response.data);
+        setModule(response.data);
       } catch (error) {
         console.log(error);
       }
     };
-    requestModule();
-    return () => (_isMounted.current = false);
+    const requestModuleCancelSource = axios.CancelToken.source();
+    requestModule(requestModuleCancelSource);
+    return () => requestModuleCancelSource.cancel();
   }, []);
 
   const handleSubmit = event => {

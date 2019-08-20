@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
@@ -8,7 +8,7 @@ import "../template.css";
 // this displays the list of stacks present
 
 const StacksList = props => {
-  const _isMounted = useRef(true);
+  let requestStackCreateCancelSources = [];
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.sitesystemid;
 
@@ -19,64 +19,90 @@ const StacksList = props => {
     sitesystem_timers: []
   });
 
-  const requestStacksList = async () => {
-    try {
-      const response = await axios.get(
-        `/sites/${siteid}/sitesystems/${sitesystemid}/stacks`
-      );
-      if (_isMounted.current) {
-        console.log(response.data);
-        setStacks(response.data);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
-    const requestSitesystem = async () => {
+    const requestStacksList = async axiosCancelSource => {
       try {
         const response = await axios.get(
-          `/sites/${siteid}/sitesystems/${sitesystemid.split("_").pop()}`
+          `/sites/${siteid}/sitesystems/${sitesystemid}/stacks`,
+          {
+            cancelToken: axiosCancelSource.token
+          }
         );
-        if (_isMounted.current) {
-          console.log(response.data.sitesystem_timers);
-          setSitesystem({
-            ...response.data,
-            sitesystem_timers: response.data.sitesystem_timers.map(
-              (sitesystem_timer, index) => {
-                sitesystem_timer.key = index;
-                return sitesystem_timer;
-              }
-            )
-          });
-        }
+        console.log(response.data);
+        setStacks(response.data);
       } catch (error) {
         console.log(error);
       }
     };
-    requestStacksList();
-    requestSitesystem();
-    return () => (_isMounted.current = false);
+    const requestSitesystem = async axiosCancelSource => {
+      try {
+        const response = await axios.get(
+          `/sites/${siteid}/sitesystems/${sitesystemid.split("_").pop()}`,
+          {
+            cancelToken: axiosCancelSource.token
+          }
+        );
+        console.log(response.data.sitesystem_timers);
+        setSitesystem({
+          ...response.data,
+          sitesystem_timers: response.data.sitesystem_timers.map(
+            (sitesystem_timer, index) => {
+              sitesystem_timer.key = index;
+              return sitesystem_timer;
+            }
+          )
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    const requestStacksListCancelSource = axios.CancelToken.source();
+    requestStacksList(requestStacksListCancelSource);
+    const requestSitesystemCancelSource = axios.CancelToken.source();
+    requestSitesystem(requestSitesystemCancelSource);
+    return () => {
+      requestStacksListCancelSource.cancel();
+      requestSitesystemCancelSource.cancel();
+      requestStackCreateCancelSources.map(requestStackCreateCancelSource =>
+        requestStackCreateCancelSource.cancel()
+      );
+    };
   }, []);
 
   const handleCreate = event => {
     event.preventDefault();
-    const requestSitesystemCreate = async () => {
+    const requestStackCreate = async axiosCancelSource => {
       try {
+        const body = {
+          stack_sitesystemid: sitesystemid,
+          stack_createdat: new Date()
+        };
         await axios.post(
           `/sites/${siteid}/sitesystems/${sitesystemid}/stacks/add`,
+          body,
           {
-            stack_sitesystemid: sitesystemid,
-            stack_createdat: new Date()
+            cancelToken: axiosCancelSource.token
           }
         );
-        requestStacksList();
+        requestStackCreateCancelSources.splice(
+          requestStackCreateCancelSources.indexOf(axiosCancelSource),
+          1
+        );
+        setStacks(
+          stacks.concat([
+            {
+              ...body,
+              stack_name: `Stack${stacks.length + 1}`
+            }
+          ])
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    requestSitesystemCreate();
+    const requestStackCreateCancelSource = axios.CancelToken.source();
+    requestStackCreateCancelSources.push(requestStackCreateCancelSource);
+    requestStackCreate(requestStackCreateCancelSource);
   };
 
   const renderStacksList = () => {

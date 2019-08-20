@@ -8,7 +8,7 @@ let { Sites } = require("../sites.model");
 sitesRouter.route("/").get((req, res) => {
   Sites.find((err, sites) => {
     if (err) {
-      console.log(err);
+      res.status(500).send("getting sites failed");
     } else {
       res.json(sites);
     }
@@ -19,8 +19,11 @@ sitesRouter.route("/").get((req, res) => {
 sitesRouter.route("/:id").get((req, res) => {
   let id = req.params.id;
   Sites.find({ sites_name: id }, (err, sites) => {
-    if (!sites || sites.length === 0) res.status(404).send("data is not found");
-    else {
+    if (err) {
+      res.status(500).send("getting site failed");
+    } else if (sites.length === 0) {
+      res.status(404).send("site not found");
+    } else {
       res.json(sites[0]);
     }
   });
@@ -29,21 +32,21 @@ sitesRouter.route("/:id").get((req, res) => {
 // update site
 sitesRouter.route("/update/:id").post((req, res) => {
   Sites.find({ sites_name: req.params.id }, (err, sites) => {
-    if (!sites || sites.length === 0) res.status(404).send("data is not found");
-    else {
+    if (err) {
+      res.status(500).send("updating site failed");
+    } else if (sites.length === 0) {
+      res.status(404).send("site not found");
+    } else {
       sites[0].sites_name = req.body.sites_name;
       sites[0].sites_location = req.body.sites_location;
       sites[0].sites_updatedat = req.body.sites_updatedat;
-
-      console.log(sites);
-
       sites[0]
         .save()
         .then(sites => {
-          res.json("Sites updated!");
+          res.json("site updated!");
         })
         .catch(err => {
-          res.status(400).send("Update not possible");
+          res.status(500).send("updating site failed");
         });
     }
   });
@@ -53,14 +56,10 @@ sitesRouter.route("/update/:id").post((req, res) => {
 sitesRouter.route("/:id").delete((req, res) => {
   let id = req.params.id;
   Sites.findOneAndDelete({ sites_name: id }, err => {
-    if (!err) {
-      console.log("pass");
-      res.sendStatus(200);
+    if (err) {
+      res.status(500).send("deleting site failed");
     } else {
-      console.log("pass");
-      res.status(500).json({
-        error: err
-      });
+      res.json("site deleted!");
     }
   });
 });
@@ -71,26 +70,19 @@ sitesRouter.route("/add").post((req, res) => {
   sites
     .save()
     .then(sites => {
-      res.status(200).json({ sites: "sites added successfully" });
       try {
         req.s3.putObject(
           {
             Bucket: req.S3Bucket,
             Key: `${sites.sites_name}/`
           },
-          resp => {
-            console.log(arguments);
-            console.log("Successfully uploaded site.");
-          }
+          (err, resp) => {}
         );
-      } catch (error) {
-        console.log(error);
-      }
+      } catch (error) {}
+      res.json("site added!");
     })
     .catch(err => {
-      if (err.code == 11000) {
-        res.status(401).send("Site with this name already exists");
-      } else res.status(400).send("adding new sites failed");
+      res.status(500).send("adding site failed");
     });
 });
 

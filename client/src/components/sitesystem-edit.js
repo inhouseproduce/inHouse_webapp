@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 import TimersList from "./timers-list";
@@ -6,7 +6,6 @@ import TimersList from "./timers-list";
 // this is called when you click on Edit Sitesystem Button
 
 const SitesystemEdit = props => {
-  const _isMounted = useRef(true);
   const { history } = props;
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.id;
@@ -21,30 +20,32 @@ const SitesystemEdit = props => {
   const handleAdd = () => setMaxkey(maxkey + 1);
 
   useEffect(() => {
-    const requestSitesystem = async () => {
+    const requestSitesystem = async axiosCancelSource => {
       try {
         const response = await axios.get(
-          `/sites/${siteid}/sitesystems/${sitesystemid}`
+          `/sites/${siteid}/sitesystems/${sitesystemid}`,
+          {
+            cancelToken: axiosCancelSource.token
+          }
         );
-        if (_isMounted.current) {
-          console.log(response.data);
-          setMaxkey(response.data.sitesystem_timers.length);
-          setSitesystem({
-            ...response.data,
-            sitesystem_timers: response.data.sitesystem_timers.map(
-              (sitesystem_timer, index) => {
-                sitesystem_timer.key = index;
-                return sitesystem_timer;
-              }
-            )
-          });
-        }
+        console.log(response.data);
+        setMaxkey(response.data.sitesystem_timers.length);
+        setSitesystem({
+          ...response.data,
+          sitesystem_timers: response.data.sitesystem_timers.map(
+            (sitesystem_timer, index) => {
+              sitesystem_timer.key = index;
+              return sitesystem_timer;
+            }
+          )
+        });
       } catch (error) {
         console.log(error);
       }
     };
-    requestSitesystem();
-    return () => (_isMounted.current = false);
+    const requestSitesystemCancelSource = axios.CancelToken.source();
+    requestSitesystem(requestSitesystemCancelSource);
+    return () => requestSitesystemCancelSource.cancel();
   }, []);
 
   const handleSubmit = event => {

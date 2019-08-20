@@ -6,7 +6,6 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const path = require("path");
 const sitesRouter = require("./routers/sites");
-let _ = require("lodash");
 
 const s3 = new AWS.S3();
 const PORT = process.env.PORT || 8080;
