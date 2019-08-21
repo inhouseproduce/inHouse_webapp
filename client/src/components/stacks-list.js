@@ -8,7 +8,7 @@ import "../template.css";
 // this displays the list of stacks present
 
 const StacksList = props => {
-  let requestStackCreateCancelSources = [];
+  let axiosCancelSources = [];
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.sitesystemid;
 
@@ -30,6 +30,10 @@ const StacksList = props => {
         );
         console.log(response.data);
         setStacks(response.data);
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
@@ -52,21 +56,20 @@ const StacksList = props => {
             }
           )
         });
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestStacksListCancelSource = axios.CancelToken.source();
-    requestStacksList(requestStacksListCancelSource);
-    const requestSitesystemCancelSource = axios.CancelToken.source();
-    requestSitesystem(requestSitesystemCancelSource);
-    return () => {
-      requestStacksListCancelSource.cancel();
-      requestSitesystemCancelSource.cancel();
-      requestStackCreateCancelSources.map(requestStackCreateCancelSource =>
-        requestStackCreateCancelSource.cancel()
-      );
-    };
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestStacksList(axiosCancelSources.slice(-1));
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestSitesystem(axiosCancelSources.slice(-1));
+    return () =>
+      axiosCancelSources.map(axiosCancelSource => axiosCancelSource.cancel());
   }, []);
 
   const handleCreate = event => {
@@ -84,10 +87,6 @@ const StacksList = props => {
             cancelToken: axiosCancelSource.token
           }
         );
-        requestStackCreateCancelSources.splice(
-          requestStackCreateCancelSources.indexOf(axiosCancelSource),
-          1
-        );
         setStacks(
           stacks.concat([
             {
@@ -96,13 +95,16 @@ const StacksList = props => {
             }
           ])
         );
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestStackCreateCancelSource = axios.CancelToken.source();
-    requestStackCreateCancelSources.push(requestStackCreateCancelSource);
-    requestStackCreate(requestStackCreateCancelSource);
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestStackCreate(axiosCancelSources.slice(-1));
   };
 
   const renderStacksList = () => {

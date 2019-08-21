@@ -4,6 +4,7 @@ import { withRouter } from "react-router-dom";
 
 // this is to edit the sites present
 const SiteEdit = props => {
+  let axiosCancelSources = [];
   const { history } = props;
   const siteid = props.match.params.id;
 
@@ -20,13 +21,18 @@ const SiteEdit = props => {
         });
         console.log(response.data);
         setSite(response.data);
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestSiteCancelSource = axios.CancelToken.source();
-    requestSite(requestSiteCancelSource);
-    return () => requestSiteCancelSource.cancel();
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestSite(axiosCancelSources.slice(-1));
+    return () =>
+      axiosCancelSources.map(axiosCancelSource => axiosCancelSource.cancel());
   }, []);
 
   const handleSubmit = event => {

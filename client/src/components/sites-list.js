@@ -6,7 +6,7 @@ import "../template.css";
 
 // this displays the list of sites present
 const SitesList = props => {
-  let requestSiteDeleteCancelSources = [];
+  let axiosCancelSources = [];
   const { history } = props;
 
   const [sites, setSites] = useState([]);
@@ -19,18 +19,18 @@ const SitesList = props => {
         });
         console.log(response.data);
         setSites(response.data);
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestSitesListCancelSource = axios.CancelToken.source();
-    requestSitesList(requestSitesListCancelSource);
-    return () => {
-      requestSitesListCancelSource.cancel();
-      requestSiteDeleteCancelSources.map(requestSiteDeleteCancelSource =>
-        requestSiteDeleteCancelSource.cancel()
-      );
-    };
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestSitesList(axiosCancelSources.slice(-1));
+    return () =>
+      axiosCancelSources.map(axiosCancelSource => axiosCancelSource.cancel());
   }, []);
 
   const handleEdit = (id, event) => {
@@ -45,23 +45,22 @@ const SitesList = props => {
         await axios.delete(`/sites/${id}`, {
           cancelToken: axiosCancelSource.token
         });
-        requestSiteDeleteCancelSources.splice(
-          requestSiteDeleteCancelSources.indexOf(axiosCancelSource),
-          1
-        );
         setSites(
           sites.filter(
             (site, index) =>
               index !== sites.findIndex(site => site.sites_name === id)
           )
         );
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestSiteDeleteCancelSource = axios.CancelToken.source();
-    requestSiteDeleteCancelSources.push(requestSiteDeleteCancelSource);
-    requestSiteDelete(requestSiteDeleteCancelSource);
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestSiteDelete(axiosCancelSources.slice(-1));
   };
 
   const renderSitesList = () => {

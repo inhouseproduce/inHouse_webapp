@@ -5,6 +5,7 @@ import { withRouter } from "react-router-dom";
 // this is called when Edit Module Button is clicked
 
 const ModuleEdit = props => {
+  let axiosCancelSources = [];
   const { history } = props;
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.sitesystemid;
@@ -27,13 +28,18 @@ const ModuleEdit = props => {
         );
         console.log(response.data);
         setModule(response.data);
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestModuleCancelSource = axios.CancelToken.source();
-    requestModule(requestModuleCancelSource);
-    return () => requestModuleCancelSource.cancel();
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestModule(axiosCancelSources.slice(-1));
+    return () =>
+      axiosCancelSources.map(axiosCancelSource => axiosCancelSource.cancel());
   }, []);
 
   const handleSubmit = event => {

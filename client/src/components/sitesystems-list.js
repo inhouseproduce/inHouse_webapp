@@ -7,7 +7,7 @@ import "../template.css";
 // this displays the list of sitesystem present
 
 const SitesystemsList = props => {
-  let requestSitesystemDeleteCancelSources = [];
+  let axiosCancelSources = [];
   const { history } = props;
   const siteid = props.match.params.siteid;
 
@@ -21,19 +21,18 @@ const SitesystemsList = props => {
         });
         console.log(response.data);
         setSitesystems(response.data);
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestSitesystemsListCancelSource = axios.CancelToken.source();
-    requestSitesystemsList(requestSitesystemsListCancelSource);
-    return () => {
-      requestSitesystemsListCancelSource.cancel();
-      requestSitesystemDeleteCancelSources.map(
-        requestSitesystemDeleteCancelSource =>
-          requestSitesystemDeleteCancelSource.cancel()
-      );
-    };
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestSitesystemsList(axiosCancelSources.slice(-1));
+    return () =>
+      axiosCancelSources.map(axiosCancelSource => axiosCancelSource.cancel());
   }, []);
 
   const handleEdit = (id, event) => {
@@ -48,10 +47,6 @@ const SitesystemsList = props => {
         await axios.delete(`/sites/${siteid}/sitesystems/${id}`, {
           cancelToken: axiosCancelSource.token
         });
-        requestSitesystemDeleteCancelSources.splice(
-          requestSitesystemDeleteCancelSources.indexOf(axiosCancelSource),
-          1
-        );
         setSitesystems(
           sitesystems.filter(
             (sitesystem, index) =>
@@ -61,15 +56,16 @@ const SitesystemsList = props => {
               )
           )
         );
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestSitesystemDeleteCancelSource = axios.CancelToken.source();
-    requestSitesystemDeleteCancelSources.push(
-      requestSitesystemDeleteCancelSource
-    );
-    requestSitesystemDelete(requestSitesystemDeleteCancelSource);
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestSitesystemDelete(axiosCancelSources.slice(-1));
   };
 
   const renderSitesystemsList = () => {

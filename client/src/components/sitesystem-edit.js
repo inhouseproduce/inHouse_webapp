@@ -6,6 +6,7 @@ import TimersList from "./timers-list";
 // this is called when you click on Edit Sitesystem Button
 
 const SitesystemEdit = props => {
+  let axiosCancelSources = [];
   const { history } = props;
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.id;
@@ -39,13 +40,18 @@ const SitesystemEdit = props => {
             }
           )
         });
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestSitesystemCancelSource = axios.CancelToken.source();
-    requestSitesystem(requestSitesystemCancelSource);
-    return () => requestSitesystemCancelSource.cancel();
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestSitesystem(axiosCancelSources.slice(-1));
+    return () =>
+      axiosCancelSources.map(axiosCancelSource => axiosCancelSource.cancel());
   }, []);
 
   const handleSubmit = event => {

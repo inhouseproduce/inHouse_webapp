@@ -7,6 +7,7 @@ import "../template.css";
 // to get list of modules present
 
 const ModulesList = props => {
+  let axiosCancelSources = [];
   const { history } = props;
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.sitesystemid;
@@ -25,13 +26,18 @@ const ModulesList = props => {
         );
         console.log(response.data);
         setModules(response.data);
+        axiosCancelSources.splice(
+          axiosCancelSources.indexOf(axiosCancelSource),
+          1
+        );
       } catch (error) {
         console.log(error);
       }
     };
-    const requestModulesListCancelSource = axios.CancelToken.source();
-    requestModulesList(requestModulesListCancelSource);
-    return () => requestModulesListCancelSource.cancel();
+    axiosCancelSources.push(axios.CancelToken.source());
+    requestModulesList(axiosCancelSources.slice(-1));
+    return () =>
+      axiosCancelSources.map(axiosCancelSource => axiosCancelSource.cancel());
   }, []);
 
   const handleEdit = (id, event) => {
