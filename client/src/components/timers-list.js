@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
+import SitesystemContext from "../contexts/sitesystem";
 
 const TimerModal = props => {
-  const { characteristic, show, sitesystem } = props;
+  const { characteristic, show } = props;
+  const { sitesystem, ...sitesystemContext } = useContext(SitesystemContext);
 
   const [timer, setTimer] = useState({
     start_time: "",
@@ -54,7 +56,7 @@ const TimerModal = props => {
         return;
       }
     }
-    props.handleAdd(timer);
+    sitesystemContext.handleAdd(timer, characteristic);
     handleClose();
   };
 
@@ -113,7 +115,7 @@ const TimerModal = props => {
           Close
         </Button>
         <Button variant="primary" onClick={handleAdd}>
-          Save Changes
+          Save
         </Button>
       </Modal.Footer>
     </Modal>
@@ -121,34 +123,11 @@ const TimerModal = props => {
 };
 
 const TimersList = props => {
-  const { sitesystem, setSitesystem, maxkey, editable } = props;
+  const { editable } = props;
+  const { sitesystem, ...sitesystemContext } = useContext(SitesystemContext);
 
   const [characteristic, setCharacteristic] = useState("Ozone");
   const [show, setShow] = useState(false);
-
-  const handleDelete = (key, event) => {
-    event.preventDefault();
-    setSitesystem({
-      ...sitesystem,
-      sitesystem_timers: sitesystem.sitesystem_timers.filter(
-        sitesystem_timer => sitesystem_timer.key !== key
-      )
-    });
-  };
-
-  const handleAdd = timer => {
-    setSitesystem({
-      ...sitesystem,
-      sitesystem_timers: sitesystem.sitesystem_timers.concat([
-        {
-          ...timer,
-          characteristic,
-          key: maxkey + 1
-        }
-      ])
-    });
-    props.handleAdd();
-  };
 
   const handleClose = () => {
     setCharacteristic("Ozone");
@@ -200,7 +179,10 @@ const TimersList = props => {
                       <Button
                         variant="danger"
                         onClick={event =>
-                          handleDelete(sitesystem_timer.key, event)
+                          sitesystemContext.handleDelete(
+                            sitesystem_timer.key,
+                            event
+                          )
                         }
                       >
                         Delete
@@ -226,9 +208,7 @@ const TimersList = props => {
         <TimerModal
           characteristic={characteristic}
           show={show}
-          handleAdd={handleAdd}
           handleClose={handleClose}
-          sitesystem={sitesystem}
         />
       ) : (
         <></>

@@ -3,6 +3,7 @@ import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
 import TimersList from "./timers-list";
+import SitesystemContext from "../contexts/sitesystem";
 import "../template.css";
 
 // this displays the list of stacks present
@@ -133,13 +134,9 @@ const StacksList = props => {
       </Button>
       <br />
       <h3>Timers List</h3>
-      <TimersList
-        sitesystem={sitesystem}
-        setSitesystem={setSitesystem}
-        maxkey={0}
-        handleAdd={() => {}}
-        editable={false}
-      />
+      <SitesystemContext.Provider value={{ sitesystem }}>
+        <TimersList editable={false} />
+      </SitesystemContext.Provider>
       <br />
       <h3>Stacks List</h3>
       <div className="row">{renderStacksList()}</div>

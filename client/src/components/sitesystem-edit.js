@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 import TimersList from "./timers-list";
+import SitesystemContext from "../contexts/sitesystem";
 
 // this is called when you click on Edit Sitesystem Button
 
 const SitesystemEdit = props => {
   let axiosCancelSources = [];
+  let timersMaxkey = 0;
   const { history } = props;
   const siteid = props.match.params.siteid;
   const sitesystemid = props.match.params.id;
@@ -16,9 +18,6 @@ const SitesystemEdit = props => {
     sitesystem_hardwareid: "",
     sitesystem_timers: []
   });
-  const [maxkey, setMaxkey] = useState(0);
-
-  const handleAdd = () => setMaxkey(maxkey + 1);
 
   useEffect(() => {
     const requestSitesystem = async axiosCancelSource => {
@@ -30,7 +29,7 @@ const SitesystemEdit = props => {
           }
         );
         console.log(response.data);
-        setMaxkey(response.data.sitesystem_timers.length);
+        timersMaxkey = response.data.sitesystem_timers.length;
         setSitesystem({
           ...response.data,
           sitesystem_timers: response.data.sitesystem_timers.map(
@@ -85,6 +84,29 @@ const SitesystemEdit = props => {
   const handleChangeSitesystemHardwareid = event =>
     setSitesystem({ ...sitesystem, sitesystem_hardwareid: event.target.value });
 
+  const handleAdd = (timer, characteristic) => {
+    setSitesystem({
+      ...sitesystem,
+      sitesystem_timers: sitesystem.sitesystem_timers.concat([
+        {
+          ...timer,
+          characteristic,
+          key: timersMaxkey++
+        }
+      ])
+    });
+  };
+
+  const handleDelete = (key, event) => {
+    event.preventDefault();
+    setSitesystem({
+      ...sitesystem,
+      sitesystem_timers: sitesystem.sitesystem_timers.filter(
+        sitesystem_timer => sitesystem_timer.key !== key
+      )
+    });
+  };
+
   return (
     <div>
       <h3 align="center">Update Sitesystem</h3>
@@ -109,13 +131,11 @@ const SitesystemEdit = props => {
         </div>
         <div className="form-group">
           <label className="text-white">Timers: </label>
-          <TimersList
-            sitesystem={sitesystem}
-            setSitesystem={setSitesystem}
-            maxkey={maxkey}
-            handleAdd={handleAdd}
-            editable={true}
-          />
+          <SitesystemContext.Provider
+            value={{ sitesystem, handleAdd, handleDelete }}
+          >
+            <TimersList editable={true} />
+          </SitesystemContext.Provider>
         </div>
         <div className="form-group">
           <input
