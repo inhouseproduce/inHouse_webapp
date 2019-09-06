@@ -1,10 +1,10 @@
+// this is for listing all sitesystems
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter, Link } from "react-router-dom";
 import "../template.css";
-
-// this displays the list of sitesystem present
 
 const SitesystemsList = props => {
   let axiosCancelSources = [];

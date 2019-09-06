@@ -1,3 +1,5 @@
+// this is the root server file which initializes connection to mongoDB and starts the server
+
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
@@ -26,6 +28,7 @@ connection.once("open", () => {
 app.use(
   "/sites",
   (req, res, next) => {
+    // s3 and s3Bucket are set in the req object to make them accessible by any descendant router
     req.s3 = s3;
     req.S3Bucket = S3Bucket;
     next();

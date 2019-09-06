@@ -1,10 +1,10 @@
+// this is for listing all modules
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { withRouter } from "react-router-dom";
 import "../template.css";
-
-// to get list of modules present
 
 const ModulesList = props => {
   let axiosCancelSources = [];

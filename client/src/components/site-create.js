@@ -1,8 +1,9 @@
+// this is for creating a site
+
 import React, { useState } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
-// this is to create a new site when you click on Create Site Button
 const SiteCreate = props => {
   const { history } = props;
 

@@ -1,3 +1,5 @@
+// this defines the mongoDB schema
+
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 

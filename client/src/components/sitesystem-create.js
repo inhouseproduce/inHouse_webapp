@@ -1,8 +1,9 @@
+// this is for creating a sitesystem
+
 import React, { useState } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
-// this is called when you click on Create Sitesystem button
 
 const SitesystemCreate = props => {
   const { history } = props;

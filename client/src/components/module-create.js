@@ -1,8 +1,8 @@
+// this is for creating a module
+
 import React, { useState } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
-
-// this is called when Create Module Button is clicked
 
 const ModuleCreate = props => {
   const { history } = props;

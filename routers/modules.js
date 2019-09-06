@@ -1,3 +1,5 @@
+// this is a router for all module related routes
+
 const express = require("express");
 const modulesRouter = express.Router();
 
@@ -15,6 +17,7 @@ modulesRouter.route("/").get((req, res) => {
         res.json(modules);
       } else {
         for (let module of modules) {
+          // fetching last modified image for each module from s3
           try {
             req.s3.listObjectsV2(
               {
@@ -29,6 +32,7 @@ modulesRouter.route("/").get((req, res) => {
                 let Module = modules.find(
                   element => element.module_name === module_name
                 );
+                // find function was used above because this callback function can be called out of order
                 if (err || (resp.Contents && resp.Contents.length <= 1)) {
                   Module.module_imageurl = "";
                 } else {
@@ -47,6 +51,7 @@ modulesRouter.route("/").get((req, res) => {
                 }
                 count++;
                 if (count === modules.length) {
+                  // this condition is true when all the asynchronous listObjectsV2 jobs have finished
                   res.json(modules);
                 }
               }

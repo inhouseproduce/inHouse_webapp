@@ -1,3 +1,5 @@
+// this is a router for all stack related routes
+
 const express = require("express");
 const stacksRouter = express.Router();
 const modulesRouter = require("./modules");

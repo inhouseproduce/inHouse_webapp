@@ -1,3 +1,5 @@
+// this is for listing all sitesystem timers with the option of editing/creating more
+
 import React, { useState, useContext } from "react";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";

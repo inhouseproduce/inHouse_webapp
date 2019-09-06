@@ -1,3 +1,5 @@
+// this is for listing all stacks
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Button from "react-bootstrap/Button";
@@ -5,8 +7,6 @@ import { withRouter, Link } from "react-router-dom";
 import TimersList from "./timers-list";
 import SitesystemContext from "../contexts/sitesystem";
 import "../template.css";
-
-// this displays the list of stacks present
 
 const StacksList = props => {
   let axiosCancelSources = [];
