@@ -1,8 +1,9 @@
+// this is for editing a site
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 
-// this is to edit the sites present
 const SiteEdit = props => {
   let axiosCancelSources = [];
   const { history } = props;

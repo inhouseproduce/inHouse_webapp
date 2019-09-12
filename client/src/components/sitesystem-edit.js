@@ -1,10 +1,11 @@
+// this is for editing a sitesystem
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
 import TimersList from "./timers-list";
 import SitesystemContext from "../contexts/sitesystem";
 
-// this is called when you click on Edit Sitesystem Button
 
 const SitesystemEdit = props => {
   let axiosCancelSources = [];

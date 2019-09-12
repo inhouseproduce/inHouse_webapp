@@ -1,3 +1,5 @@
+// this is a router for all sitesystem related routes
+
 const express = require("express");
 const sitesystemsRouter = express.Router();
 const stacksRouter = require("./stacks");

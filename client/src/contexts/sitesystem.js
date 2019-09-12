@@ -1,3 +1,5 @@
+// this defines sitesystem context for timers
+
 import React from "react";
 
 const SitesystemContext = React.createContext({

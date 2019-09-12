@@ -1,8 +1,8 @@
+// this is for editing a module
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { withRouter } from "react-router-dom";
-
-// this is called when Edit Module Button is clicked
 
 const ModuleEdit = props => {
   let axiosCancelSources = [];
